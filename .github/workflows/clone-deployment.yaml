@@ -1,0 +1,481 @@
+name: Clone Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_deployment:
+        description: "Source deployment ID to clone (e.g. my-deployment)"
+        required: true
+        type: string
+      source_account:
+        description: "Account ID where the source deployment lives"
+        required: true
+        type: string
+      target_account:
+        description: "Account ID to create the clone in (defaults to source_account)"
+        required: false
+        type: string
+      deployment_id:
+        description: "ID for the new deployment (auto-generated if empty)"
+        required: false
+        type: string
+      display_name:
+        description: "Display name for the cloned deployment"
+        required: false
+        type: string
+      description:
+        description: "Description for the cloned deployment"
+        required: false
+        type: string
+      min_replica_count:
+        description: "Minimum replica count override"
+        required: false
+        type: string
+      max_replica_count:
+        description: "Maximum replica count override"
+        required: false
+        type: string
+      accelerator_type:
+        description: "Accelerator type override (e.g. NVIDIA_H100_80GB, NVIDIA_A100_80GB)"
+        required: false
+        type: string
+      accelerator_count:
+        description: "Number of accelerators per replica override"
+        required: false
+        type: string
+      region:
+        description: "Placement region override (e.g. us-iowa-1). Use 'global' for multi-region."
+        required: false
+        type: string
+      precision:
+        description: "Model precision override (e.g. FP16, FP8, BF16)"
+        required: false
+        type: string
+      max_context_length:
+        description: "Maximum context length override"
+        required: false
+        type: string
+      deployment_shape:
+        description: "Deployment shape override"
+        required: false
+        type: string
+      wait_timeout:
+        description: "How long to wait for the deployment to become healthy (default: 30m)"
+        required: false
+        type: string
+        default: "30m"
+
+  workflow_call:
+    inputs:
+      source_deployment:
+        description: "Source deployment ID to clone"
+        required: true
+        type: string
+      source_account:
+        description: "Account ID where the source deployment lives"
+        required: true
+        type: string
+      target_account:
+        description: "Account ID to create the clone in (defaults to source_account)"
+        required: false
+        type: string
+      deployment_id:
+        description: "ID for the new deployment (auto-generated if empty)"
+        required: false
+        type: string
+      display_name:
+        description: "Display name for the cloned deployment"
+        required: false
+        type: string
+      description:
+        description: "Description for the cloned deployment"
+        required: false
+        type: string
+      min_replica_count:
+        description: "Minimum replica count override"
+        required: false
+        type: string
+      max_replica_count:
+        description: "Maximum replica count override"
+        required: false
+        type: string
+      accelerator_type:
+        description: "Accelerator type override"
+        required: false
+        type: string
+      accelerator_count:
+        description: "Number of accelerators per replica override"
+        required: false
+        type: string
+      region:
+        description: "Placement region override"
+        required: false
+        type: string
+      precision:
+        description: "Model precision override"
+        required: false
+        type: string
+      max_context_length:
+        description: "Maximum context length override"
+        required: false
+        type: string
+      deployment_shape:
+        description: "Deployment shape override"
+        required: false
+        type: string
+      wait_timeout:
+        description: "How long to wait for the deployment to become healthy"
+        required: false
+        type: string
+        default: "30m"
+    secrets:
+      FIREWORKS_API_KEY:
+        description: "Fireworks API key with permissions on both source and target accounts"
+        required: true
+    outputs:
+      deployment_id:
+        description: "The ID of the newly created deployment"
+        value: ${{ jobs.clone.outputs.deployment_id }}
+      deployment_name:
+        description: "The full resource name of the new deployment"
+        value: ${{ jobs.clone.outputs.deployment_name }}
+      deployment_state:
+        description: "The final observed state of the new deployment"
+        value: ${{ jobs.clone.outputs.deployment_state }}
+
+jobs:
+  clone:
+    name: Clone Deployment
+    runs-on: ubuntu-latest
+    outputs:
+      deployment_id: ${{ steps.create.outputs.deployment_id }}
+      deployment_name: ${{ steps.create.outputs.deployment_name }}
+      deployment_state: ${{ steps.wait.outputs.deployment_state }}
+
+    env:
+      FIREWORKS_API_KEY: ${{ secrets.FIREWORKS_API_KEY }}
+      FIREWORKS_API_BASE: "https://api.fireworks.ai/v1"
+
+    steps:
+      - name: Validate inputs
+        run: |
+          if [ -z "${{ inputs.source_deployment }}" ]; then
+            echo "::error::source_deployment is required"
+            exit 1
+          fi
+          if [ -z "${{ inputs.source_account }}" ]; then
+            echo "::error::source_account is required"
+            exit 1
+          fi
+          if [ -z "${FIREWORKS_API_KEY}" ]; then
+            echo "::error::FIREWORKS_API_KEY secret is not set"
+            exit 1
+          fi
+
+      - name: Resolve target account
+        id: accounts
+        run: |
+          SOURCE_ACCOUNT="${{ inputs.source_account }}"
+          TARGET_ACCOUNT="${{ inputs.target_account }}"
+          if [ -z "${TARGET_ACCOUNT}" ]; then
+            TARGET_ACCOUNT="${SOURCE_ACCOUNT}"
+          fi
+          echo "source=${SOURCE_ACCOUNT}" >> "$GITHUB_OUTPUT"
+          echo "target=${TARGET_ACCOUNT}" >> "$GITHUB_OUTPUT"
+          echo "Source account: ${SOURCE_ACCOUNT}"
+          echo "Target account: ${TARGET_ACCOUNT}"
+
+      - name: Fetch source deployment config
+        id: fetch
+        run: |
+          SOURCE_ACCOUNT="${{ steps.accounts.outputs.source }}"
+          DEPLOYMENT_ID="${{ inputs.source_deployment }}"
+
+          echo "Fetching deployment config: accounts/${SOURCE_ACCOUNT}/deployments/${DEPLOYMENT_ID}"
+
+          HTTP_RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -H "Authorization: Bearer ${FIREWORKS_API_KEY}" \
+            -H "Content-Type: application/json" \
+            "${FIREWORKS_API_BASE}/accounts/${SOURCE_ACCOUNT}/deployments/${DEPLOYMENT_ID}")
+
+          HTTP_CODE=$(echo "${HTTP_RESPONSE}" | tail -n1)
+          RESPONSE_BODY=$(echo "${HTTP_RESPONSE}" | sed '$d')
+
+          if [ "${HTTP_CODE}" -ne 200 ]; then
+            echo "::error::Failed to fetch source deployment (HTTP ${HTTP_CODE}): ${RESPONSE_BODY}"
+            exit 1
+          fi
+
+          echo "Successfully fetched source deployment config"
+          echo "${RESPONSE_BODY}" | jq '.' | head -40
+          echo "..."
+
+          # Write to file so downstream steps can use it
+          echo "${RESPONSE_BODY}" > /tmp/source_deployment.json
+
+      - name: Build clone deployment payload
+        id: payload
+        run: |
+          SOURCE_CONFIG="/tmp/source_deployment.json"
+
+          # Extract cloneable fields from source, stripping read-only fields
+          CLONE_PAYLOAD=$(jq '{
+            baseModel,
+            minReplicaCount,
+            maxReplicaCount,
+            acceleratorType,
+            acceleratorCount,
+            precision,
+            placement,
+            maxContextLength,
+            deploymentShape,
+            deploymentTemplate,
+            enableAddons,
+            enableSessionAffinity,
+            autoscalingPolicy,
+            draftModel,
+            draftTokenCount,
+            ngramSpeculationLength,
+            autoTune,
+            enableMtp,
+            enableHotLoad,
+            hotLoadBucketType,
+            hotLoadBucketUrl,
+            enableHotReloadLatestAddon
+          } | with_entries(select(.value != null and .value != ""))' "${SOURCE_CONFIG}")
+
+          # Apply overrides from inputs
+          if [ -n "${{ inputs.display_name }}" ]; then
+            CLONE_PAYLOAD=$(echo "${CLONE_PAYLOAD}" | jq --arg v "${{ inputs.display_name }}" '. + {displayName: $v}')
+          fi
+
+          if [ -n "${{ inputs.description }}" ]; then
+            CLONE_PAYLOAD=$(echo "${CLONE_PAYLOAD}" | jq --arg v "${{ inputs.description }}" '. + {description: $v}')
+          fi
+
+          if [ -n "${{ inputs.min_replica_count }}" ]; then
+            CLONE_PAYLOAD=$(echo "${CLONE_PAYLOAD}" | jq --argjson v "${{ inputs.min_replica_count }}" '. + {minReplicaCount: $v}')
+          fi
+
+          if [ -n "${{ inputs.max_replica_count }}" ]; then
+            CLONE_PAYLOAD=$(echo "${CLONE_PAYLOAD}" | jq --argjson v "${{ inputs.max_replica_count }}" '. + {maxReplicaCount: $v}')
+          fi
+
+          if [ -n "${{ inputs.accelerator_type }}" ]; then
+            CLONE_PAYLOAD=$(echo "${CLONE_PAYLOAD}" | jq --arg v "${{ inputs.accelerator_type }}" '. + {acceleratorType: $v}')
+          fi
+
+          if [ -n "${{ inputs.accelerator_count }}" ]; then
+            CLONE_PAYLOAD=$(echo "${CLONE_PAYLOAD}" | jq --argjson v "${{ inputs.accelerator_count }}" '. + {acceleratorCount: $v}')
+          fi
+
+          if [ -n "${{ inputs.precision }}" ]; then
+            CLONE_PAYLOAD=$(echo "${CLONE_PAYLOAD}" | jq --arg v "${{ inputs.precision }}" '. + {precision: $v}')
+          fi
+
+          if [ -n "${{ inputs.max_context_length }}" ]; then
+            CLONE_PAYLOAD=$(echo "${CLONE_PAYLOAD}" | jq --argjson v "${{ inputs.max_context_length }}" '. + {maxContextLength: $v}')
+          fi
+
+          if [ -n "${{ inputs.deployment_shape }}" ]; then
+            CLONE_PAYLOAD=$(echo "${CLONE_PAYLOAD}" | jq --arg v "${{ inputs.deployment_shape }}" '. + {deploymentShape: $v}')
+          fi
+
+          if [ -n "${{ inputs.region }}" ]; then
+            # Convert human-friendly region to API format and set placement
+            REGION_UPPER=$(echo "${{ inputs.region }}" | tr '[:lower:]' '[:upper:]' | tr '-' '_')
+            if [ "${REGION_UPPER}" = "GLOBAL" ]; then
+              CLONE_PAYLOAD=$(echo "${CLONE_PAYLOAD}" | jq '. + {placement: {multiRegion: "GLOBAL"}}')
+            else
+              CLONE_PAYLOAD=$(echo "${CLONE_PAYLOAD}" | jq --arg v "${REGION_UPPER}" '. + {placement: {region: $v}}')
+            fi
+          fi
+
+          echo "Clone payload:"
+          echo "${CLONE_PAYLOAD}" | jq '.'
+          echo "${CLONE_PAYLOAD}" > /tmp/clone_payload.json
+
+      - name: Create cloned deployment
+        id: create
+        run: |
+          TARGET_ACCOUNT="${{ steps.accounts.outputs.target }}"
+          DEPLOYMENT_ID="${{ inputs.deployment_id }}"
+
+          CREATE_URL="${FIREWORKS_API_BASE}/accounts/${TARGET_ACCOUNT}/deployments"
+          if [ -n "${DEPLOYMENT_ID}" ]; then
+            CREATE_URL="${CREATE_URL}?deploymentId=${DEPLOYMENT_ID}"
+          fi
+
+          echo "Creating deployment in account: ${TARGET_ACCOUNT}"
+
+          HTTP_RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -X POST \
+            -H "Authorization: Bearer ${FIREWORKS_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d @/tmp/clone_payload.json \
+            "${CREATE_URL}")
+
+          HTTP_CODE=$(echo "${HTTP_RESPONSE}" | tail -n1)
+          RESPONSE_BODY=$(echo "${HTTP_RESPONSE}" | sed '$d')
+
+          if [ "${HTTP_CODE}" -ne 200 ]; then
+            echo "::error::Failed to create deployment (HTTP ${HTTP_CODE}): ${RESPONSE_BODY}"
+            exit 1
+          fi
+
+          DEPLOYMENT_NAME=$(echo "${RESPONSE_BODY}" | jq -r '.name')
+          NEW_DEPLOYMENT_ID=$(echo "${DEPLOYMENT_NAME}" | awk -F'/' '{print $NF}')
+          STATE=$(echo "${RESPONSE_BODY}" | jq -r '.state')
+
+          echo "deployment_id=${NEW_DEPLOYMENT_ID}" >> "$GITHUB_OUTPUT"
+          echo "deployment_name=${DEPLOYMENT_NAME}" >> "$GITHUB_OUTPUT"
+
+          echo "Created deployment: ${DEPLOYMENT_NAME} (state: ${STATE})"
+          echo "${RESPONSE_BODY}" | jq '.'
+
+      - name: Wait for deployment to become healthy
+        id: wait
+        run: |
+          TARGET_ACCOUNT="${{ steps.accounts.outputs.target }}"
+          DEPLOYMENT_ID="${{ steps.create.outputs.deployment_id }}"
+          TIMEOUT="${{ inputs.wait_timeout }}"
+          if [ -z "${TIMEOUT}" ]; then
+            TIMEOUT="30m"
+          fi
+
+          # Parse timeout to seconds
+          TIMEOUT_SECONDS=0
+          if echo "${TIMEOUT}" | grep -qE '^[0-9]+s$'; then
+            TIMEOUT_SECONDS=$(echo "${TIMEOUT}" | sed 's/s$//')
+          elif echo "${TIMEOUT}" | grep -qE '^[0-9]+m$'; then
+            TIMEOUT_SECONDS=$(($(echo "${TIMEOUT}" | sed 's/m$//') * 60))
+          elif echo "${TIMEOUT}" | grep -qE '^[0-9]+h$'; then
+            TIMEOUT_SECONDS=$(($(echo "${TIMEOUT}" | sed 's/h$//') * 3600))
+          else
+            TIMEOUT_SECONDS=1800
+          fi
+
+          echo "Waiting up to ${TIMEOUT} (${TIMEOUT_SECONDS}s) for deployment ${DEPLOYMENT_ID} to become healthy..."
+
+          START_TIME=$(date +%s)
+          POLL_INTERVAL=15
+          LAST_STATE=""
+
+          while true; do
+            ELAPSED=$(( $(date +%s) - START_TIME ))
+            if [ "${ELAPSED}" -ge "${TIMEOUT_SECONDS}" ]; then
+              echo "::error::Timed out after ${TIMEOUT} waiting for deployment to become healthy (last state: ${LAST_STATE})"
+              echo "deployment_state=${LAST_STATE}" >> "$GITHUB_OUTPUT"
+              exit 1
+            fi
+
+            HTTP_RESPONSE=$(curl -s -w "\n%{http_code}" \
+              -H "Authorization: Bearer ${FIREWORKS_API_KEY}" \
+              -H "Content-Type: application/json" \
+              "${FIREWORKS_API_BASE}/accounts/${TARGET_ACCOUNT}/deployments/${DEPLOYMENT_ID}")
+
+            HTTP_CODE=$(echo "${HTTP_RESPONSE}" | tail -n1)
+            RESPONSE_BODY=$(echo "${HTTP_RESPONSE}" | sed '$d')
+
+            if [ "${HTTP_CODE}" -ne 200 ]; then
+              echo "Warning: Failed to poll deployment status (HTTP ${HTTP_CODE}), will retry..."
+              sleep "${POLL_INTERVAL}"
+              continue
+            fi
+
+            STATE=$(echo "${RESPONSE_BODY}" | jq -r '.state')
+            READY_REPLICAS=$(echo "${RESPONSE_BODY}" | jq -r '.replicaStats.readyReplicaCount // 0')
+            STATUS_CODE=$(echo "${RESPONSE_BODY}" | jq -r '.status.code // "UNKNOWN"')
+            STATUS_MSG=$(echo "${RESPONSE_BODY}" | jq -r '.status.message // ""')
+
+            if [ "${STATE}" != "${LAST_STATE}" ]; then
+              echo "State changed: ${LAST_STATE:-initial} -> ${STATE} (ready replicas: ${READY_REPLICAS})"
+              LAST_STATE="${STATE}"
+            fi
+
+            if [ "${STATE}" = "READY" ]; then
+              echo "Deployment is healthy! (ready replicas: ${READY_REPLICAS})"
+              echo "deployment_state=READY" >> "$GITHUB_OUTPUT"
+              break
+            fi
+
+            if [ "${STATE}" = "FAILED" ]; then
+              echo "::error::Deployment entered FAILED state: ${STATUS_MSG}"
+              echo "deployment_state=FAILED" >> "$GITHUB_OUTPUT"
+              exit 1
+            fi
+
+            if [ "${STATE}" = "DELETED" ] || [ "${STATE}" = "DELETING" ]; then
+              echo "::error::Deployment was unexpectedly deleted (state: ${STATE})"
+              echo "deployment_state=${STATE}" >> "$GITHUB_OUTPUT"
+              exit 1
+            fi
+
+            REMAINING=$(( TIMEOUT_SECONDS - ELAPSED ))
+            MINUTES_LEFT=$(( REMAINING / 60 ))
+            echo "  State: ${STATE} | Ready replicas: ${READY_REPLICAS} | Elapsed: ${ELAPSED}s | Remaining: ~${MINUTES_LEFT}m"
+            sleep "${POLL_INTERVAL}"
+          done
+
+      - name: Generate summary
+        if: always()
+        run: |
+          DEPLOYMENT_ID="${{ steps.create.outputs.deployment_id }}"
+          DEPLOYMENT_NAME="${{ steps.create.outputs.deployment_name }}"
+          DEPLOYMENT_STATE="${{ steps.wait.outputs.deployment_state }}"
+          SOURCE_ACCOUNT="${{ steps.accounts.outputs.source }}"
+          TARGET_ACCOUNT="${{ steps.accounts.outputs.target }}"
+          SOURCE_DEPLOYMENT="${{ inputs.source_deployment }}"
+
+          if [ "${DEPLOYMENT_STATE}" = "READY" ]; then
+            STATUS_EMOJI="white_check_mark"
+            STATUS_TEXT="Healthy"
+          elif [ "${DEPLOYMENT_STATE}" = "FAILED" ]; then
+            STATUS_EMOJI="x"
+            STATUS_TEXT="Failed"
+          else
+            STATUS_EMOJI="warning"
+            STATUS_TEXT="${DEPLOYMENT_STATE:-Unknown}"
+          fi
+
+          {
+            echo "## Deployment Clone Report"
+            echo ""
+            echo "| Field | Value |"
+            echo "|-------|-------|"
+            echo "| **Status** | :${STATUS_EMOJI}: ${STATUS_TEXT} |"
+            echo "| **Source** | \`accounts/${SOURCE_ACCOUNT}/deployments/${SOURCE_DEPLOYMENT}\` |"
+            echo "| **Clone** | \`${DEPLOYMENT_NAME}\` |"
+            echo "| **Clone ID** | \`${DEPLOYMENT_ID}\` |"
+            echo "| **Target Account** | \`${TARGET_ACCOUNT}\` |"
+            echo "| **Final State** | \`${DEPLOYMENT_STATE}\` |"
+            echo ""
+            echo "### Overrides Applied"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          HAS_OVERRIDES=false
+          for INPUT_NAME in target_account deployment_id display_name description min_replica_count max_replica_count accelerator_type accelerator_count region precision max_context_length deployment_shape; do
+            VALUE=""
+            case "${INPUT_NAME}" in
+              target_account) VALUE="${{ inputs.target_account }}" ;;
+              deployment_id) VALUE="${{ inputs.deployment_id }}" ;;
+              display_name) VALUE="${{ inputs.display_name }}" ;;
+              description) VALUE="${{ inputs.description }}" ;;
+              min_replica_count) VALUE="${{ inputs.min_replica_count }}" ;;
+              max_replica_count) VALUE="${{ inputs.max_replica_count }}" ;;
+              accelerator_type) VALUE="${{ inputs.accelerator_type }}" ;;
+              accelerator_count) VALUE="${{ inputs.accelerator_count }}" ;;
+              region) VALUE="${{ inputs.region }}" ;;
+              precision) VALUE="${{ inputs.precision }}" ;;
+              max_context_length) VALUE="${{ inputs.max_context_length }}" ;;
+              deployment_shape) VALUE="${{ inputs.deployment_shape }}" ;;
+            esac
+            if [ -n "${VALUE}" ]; then
+              echo "| \`${INPUT_NAME}\` | \`${VALUE}\` |" >> "$GITHUB_STEP_SUMMARY"
+              HAS_OVERRIDES=true
+            fi
+          done
+
+          if [ "${HAS_OVERRIDES}" = "false" ]; then
+            echo "_No overrides — exact clone of source deployment._" >> "$GITHUB_STEP_SUMMARY"
+          fi
