@@ -19,39 +19,10 @@ on:
         description: "ID for the cloned deployment (auto-generated if empty)"
         required: false
         type: string
-      description:
-        description: "Description for the cloned deployment"
-        required: false
-        type: string
-      min_replica_count:
-        description: "Minimum replica count override"
-        required: false
-        type: string
-      max_replica_count:
-        description: "Maximum replica count override"
-        required: false
-        type: string
-      region:
-        description: "Region override (e.g. us-iowa-1, us, global)"
-        required: false
-        type: string
-      image_tag:
-        description: "Serving image tag override"
-        required: false
-        type: string
-      image_tag_reason:
-        description: "Reason for setting a specific image tag"
-        required: false
-        type: string
       extra_args:
-        description: "Additional flags passed verbatim to firectl-admin deployment clone"
+        description: "Extra flags for firectl-admin deployment clone (e.g. --region=us-iowa-1 --min-replica-count=1)"
         required: false
         type: string
-      wait_timeout:
-        description: "How long to wait for healthy state (default: 30m)"
-        required: false
-        type: string
-        default: "30m"
 
   workflow_call:
     inputs:
@@ -71,39 +42,10 @@ on:
         description: "ID for the cloned deployment (auto-generated if empty)"
         required: false
         type: string
-      description:
-        description: "Description for the cloned deployment"
-        required: false
-        type: string
-      min_replica_count:
-        description: "Minimum replica count override"
-        required: false
-        type: string
-      max_replica_count:
-        description: "Maximum replica count override"
-        required: false
-        type: string
-      region:
-        description: "Region override (e.g. us-iowa-1, us, global)"
-        required: false
-        type: string
-      image_tag:
-        description: "Serving image tag override"
-        required: false
-        type: string
-      image_tag_reason:
-        description: "Reason for setting a specific image tag"
-        required: false
-        type: string
       extra_args:
-        description: "Additional flags passed verbatim to firectl-admin deployment clone"
+        description: "Extra flags for firectl-admin deployment clone (e.g. --region=us-iowa-1 --min-replica-count=1)"
         required: false
         type: string
-      wait_timeout:
-        description: "How long to wait for healthy state (default: 30m)"
-        required: false
-        type: string
-        default: "30m"
     secrets:
       FIREWORKS_API_KEY:
         description: "Fireworks API key with permissions on source and target accounts"
@@ -184,41 +126,13 @@ jobs:
           SOURCE_ACCOUNT="${{ steps.accounts.outputs.source }}"
           TARGET_ACCOUNT="${{ steps.accounts.outputs.target }}"
           SOURCE_DEPLOYMENT="${{ inputs.source_deployment }}"
-
-          # Build the full resource name so clone works across accounts
           SOURCE_REF="accounts/${SOURCE_ACCOUNT}/deployments/${SOURCE_DEPLOYMENT}"
 
-          FLAGS=""
+          FLAGS="--wait"
 
           if [ -n "${{ inputs.deployment_id }}" ]; then
             FLAGS="${FLAGS} --deployment-id=${{ inputs.deployment_id }}"
           fi
-
-          if [ -n "${{ inputs.description }}" ]; then
-            FLAGS="${FLAGS} --description=${{ inputs.description }}"
-          fi
-
-          if [ -n "${{ inputs.min_replica_count }}" ]; then
-            FLAGS="${FLAGS} --min-replica-count=${{ inputs.min_replica_count }}"
-          fi
-
-          if [ -n "${{ inputs.max_replica_count }}" ]; then
-            FLAGS="${FLAGS} --max-replica-count=${{ inputs.max_replica_count }}"
-          fi
-
-          if [ -n "${{ inputs.region }}" ]; then
-            FLAGS="${FLAGS} --region=${{ inputs.region }}"
-          fi
-
-          if [ -n "${{ inputs.image_tag }}" ]; then
-            FLAGS="${FLAGS} --image-tag=${{ inputs.image_tag }}"
-          fi
-
-          if [ -n "${{ inputs.image_tag_reason }}" ]; then
-            FLAGS="${FLAGS} --image-tag-reason=${{ inputs.image_tag_reason }}"
-          fi
-
-          FLAGS="${FLAGS} --wait --wait-timeout=${{ inputs.wait_timeout || '30m' }}"
 
           if [ -n "${{ inputs.extra_args }}" ]; then
             FLAGS="${FLAGS} ${{ inputs.extra_args }}"
@@ -227,7 +141,6 @@ jobs:
           echo "Cloning ${SOURCE_REF} into account ${TARGET_ACCOUNT}"
           echo "Flags: ${FLAGS}"
 
-          # -a sets the target account; the source ref includes the source account
           # shellcheck disable=SC2086
           OUTPUT=$(firectl-admin -a "${TARGET_ACCOUNT}" deployment clone \
             "${SOURCE_REF}" \
@@ -239,7 +152,6 @@ jobs:
 
           echo "${OUTPUT}"
 
-          # Parse deployment name from text output (e.g. "Name:  accounts/.../deployments/xxx")
           DEPLOYMENT_NAME=$(echo "${OUTPUT}" | grep -oP '(?<=Name:\s{1,10})accounts/\S+' | head -1 || true)
           if [ -z "${DEPLOYMENT_NAME}" ]; then
             DEPLOYMENT_NAME=$(echo "${OUTPUT}" | jq -r '.name // empty' 2>/dev/null || true)
@@ -309,29 +221,15 @@ jobs:
             echo "| **Clone ID** | \`${DEPLOYMENT_ID}\` |"
             echo "| **Target Account** | \`${TARGET_ACCOUNT}\` |"
             echo "| **Final State** | \`${DEPLOYMENT_STATE}\` |"
-            echo ""
-            echo "### Overrides Applied"
           } >> "$GITHUB_STEP_SUMMARY"
 
-          HAS_OVERRIDES=false
-          for INPUT_NAME in target_account deployment_id description min_replica_count max_replica_count region image_tag extra_args; do
-            VALUE=""
-            case "${INPUT_NAME}" in
-              target_account) VALUE="${{ inputs.target_account }}" ;;
-              deployment_id) VALUE="${{ inputs.deployment_id }}" ;;
-              description) VALUE="${{ inputs.description }}" ;;
-              min_replica_count) VALUE="${{ inputs.min_replica_count }}" ;;
-              max_replica_count) VALUE="${{ inputs.max_replica_count }}" ;;
-              region) VALUE="${{ inputs.region }}" ;;
-              image_tag) VALUE="${{ inputs.image_tag }}" ;;
-              extra_args) VALUE="${{ inputs.extra_args }}" ;;
-            esac
-            if [ -n "${VALUE}" ]; then
-              echo "| \`${INPUT_NAME}\` | \`${VALUE}\` |" >> "$GITHUB_STEP_SUMMARY"
-              HAS_OVERRIDES=true
-            fi
-          done
-
-          if [ "${HAS_OVERRIDES}" = "false" ]; then
-            echo "_No overrides — exact clone of source deployment._" >> "$GITHUB_STEP_SUMMARY"
+          EXTRA_ARGS="${{ inputs.extra_args }}"
+          if [ -n "${EXTRA_ARGS}" ]; then
+            {
+              echo ""
+              echo "### Extra Args"
+              echo "\`\`\`"
+              echo "${EXTRA_ARGS}"
+              echo "\`\`\`"
+            } >> "$GITHUB_STEP_SUMMARY"
           fi
