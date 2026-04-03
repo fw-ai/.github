@@ -1,0 +1,235 @@
+name: Clone Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_deployment:
+        description: "Source deployment to clone (ID or full resource name)"
+        required: true
+        type: string
+      source_account:
+        description: "Account ID that owns the source deployment"
+        required: true
+        type: string
+      target_account:
+        description: "Account ID to create the clone in (defaults to source_account)"
+        required: false
+        type: string
+      deployment_id:
+        description: "ID for the cloned deployment (auto-generated if empty)"
+        required: false
+        type: string
+      extra_args:
+        description: "Extra flags for firectl-admin deployment clone (e.g. --region=us-iowa-1 --min-replica-count=1)"
+        required: false
+        type: string
+
+  workflow_call:
+    inputs:
+      source_deployment:
+        description: "Source deployment to clone (ID or full resource name)"
+        required: true
+        type: string
+      source_account:
+        description: "Account ID that owns the source deployment"
+        required: true
+        type: string
+      target_account:
+        description: "Account ID to create the clone in (defaults to source_account)"
+        required: false
+        type: string
+      deployment_id:
+        description: "ID for the cloned deployment (auto-generated if empty)"
+        required: false
+        type: string
+      extra_args:
+        description: "Extra flags for firectl-admin deployment clone (e.g. --region=us-iowa-1 --min-replica-count=1)"
+        required: false
+        type: string
+    secrets:
+      FIREWORKS_API_KEY:
+        description: "Fireworks API key with permissions on source and target accounts"
+        required: true
+    outputs:
+      deployment_id:
+        description: "The ID of the newly created deployment"
+        value: ${{ jobs.clone.outputs.deployment_id }}
+      deployment_name:
+        description: "Full resource name of the new deployment"
+        value: ${{ jobs.clone.outputs.deployment_name }}
+      deployment_state:
+        description: "Final observed state of the new deployment"
+        value: ${{ jobs.clone.outputs.deployment_state }}
+
+jobs:
+  clone:
+    name: Clone Deployment
+    runs-on: ubuntu-latest
+    outputs:
+      deployment_id: ${{ steps.clone.outputs.deployment_id }}
+      deployment_name: ${{ steps.clone.outputs.deployment_name }}
+      deployment_state: ${{ steps.wait.outputs.deployment_state }}
+
+    steps:
+      - name: Validate inputs
+        run: |
+          if [ -z "${{ inputs.source_deployment }}" ]; then
+            echo "::error::source_deployment is required"
+            exit 1
+          fi
+          if [ -z "${{ inputs.source_account }}" ]; then
+            echo "::error::source_account is required"
+            exit 1
+          fi
+
+      - name: Install firectl-admin
+        run: |
+          wget -qO firectl-admin.gz \
+            "https://storage.googleapis.com/fireworks-public/firectl-admin/stable/linux-amd64.gz"
+          gunzip firectl-admin.gz
+          sudo install -o root -g root -m 0755 firectl-admin /usr/local/bin/firectl-admin
+          echo "Installed: $(firectl-admin version)"
+
+      - name: Authenticate firectl-admin
+        env:
+          FIREWORKS_API_KEY: ${{ secrets.FIREWORKS_API_KEY }}
+        run: |
+          if [ -z "${FIREWORKS_API_KEY}" ]; then
+            echo "::error::FIREWORKS_API_KEY secret is not set"
+            exit 1
+          fi
+          firectl-admin set-api-key "${FIREWORKS_API_KEY}"
+
+      - name: Resolve accounts
+        id: accounts
+        run: |
+          SOURCE_ACCOUNT="${{ inputs.source_account }}"
+          TARGET_ACCOUNT="${{ inputs.target_account }}"
+          if [ -z "${TARGET_ACCOUNT}" ]; then
+            TARGET_ACCOUNT="${SOURCE_ACCOUNT}"
+          fi
+          echo "source=${SOURCE_ACCOUNT}" >> "$GITHUB_OUTPUT"
+          echo "target=${TARGET_ACCOUNT}" >> "$GITHUB_OUTPUT"
+          echo "Source account: ${SOURCE_ACCOUNT}"
+          echo "Target account: ${TARGET_ACCOUNT}"
+
+      - name: Show source deployment
+        run: |
+          SOURCE_ACCOUNT="${{ steps.accounts.outputs.source }}"
+          SOURCE_DEPLOYMENT="${{ inputs.source_deployment }}"
+          echo "Source: accounts/${SOURCE_ACCOUNT}/deployments/${SOURCE_DEPLOYMENT}"
+          firectl-admin -a "${SOURCE_ACCOUNT}" deployment get "${SOURCE_DEPLOYMENT}"
+
+      - name: Clone deployment
+        id: clone
+        run: |
+          SOURCE_ACCOUNT="${{ steps.accounts.outputs.source }}"
+          TARGET_ACCOUNT="${{ steps.accounts.outputs.target }}"
+          SOURCE_DEPLOYMENT="${{ inputs.source_deployment }}"
+          SOURCE_REF="accounts/${SOURCE_ACCOUNT}/deployments/${SOURCE_DEPLOYMENT}"
+
+          FLAGS="--wait"
+
+          if [ -n "${{ inputs.deployment_id }}" ]; then
+            FLAGS="${FLAGS} --deployment-id=${{ inputs.deployment_id }}"
+          fi
+
+          if [ -n "${{ inputs.extra_args }}" ]; then
+            FLAGS="${FLAGS} ${{ inputs.extra_args }}"
+          fi
+
+          echo "Cloning ${SOURCE_REF} into account ${TARGET_ACCOUNT}"
+          echo "Flags: ${FLAGS}"
+
+          # shellcheck disable=SC2086
+          OUTPUT=$(firectl-admin -a "${TARGET_ACCOUNT}" deployment clone \
+            "${SOURCE_REF}" \
+            ${FLAGS} 2>&1) || {
+            echo "::error::firectl-admin deployment clone failed"
+            echo "${OUTPUT}"
+            exit 1
+          }
+
+          echo "${OUTPUT}"
+
+          DEPLOYMENT_NAME=$(echo "${OUTPUT}" | grep -oP '(?<=Name:\s{1,10})accounts/\S+' | head -1 || true)
+          if [ -z "${DEPLOYMENT_NAME}" ]; then
+            DEPLOYMENT_NAME=$(echo "${OUTPUT}" | jq -r '.name // empty' 2>/dev/null || true)
+          fi
+
+          NEW_ID=$(echo "${DEPLOYMENT_NAME}" | awk -F'/' '{print $NF}')
+          if [ -z "${NEW_ID}" ]; then
+            echo "::error::Could not extract deployment ID from output"
+            exit 1
+          fi
+
+          echo "deployment_id=${NEW_ID}" >> "$GITHUB_OUTPUT"
+          echo "deployment_name=${DEPLOYMENT_NAME}" >> "$GITHUB_OUTPUT"
+          echo "Cloned deployment: ${DEPLOYMENT_NAME}"
+
+      - name: Verify deployment health
+        id: wait
+        run: |
+          TARGET_ACCOUNT="${{ steps.accounts.outputs.target }}"
+          DEPLOYMENT_ID="${{ steps.clone.outputs.deployment_id }}"
+
+          if [ -z "${DEPLOYMENT_ID}" ]; then
+            echo "::error::No deployment ID from clone step"
+            echo "deployment_state=UNKNOWN" >> "$GITHUB_OUTPUT"
+            exit 1
+          fi
+
+          echo "Verifying deployment ${DEPLOYMENT_ID} in account ${TARGET_ACCOUNT}..."
+          firectl-admin -a "${TARGET_ACCOUNT}" deployment get "${DEPLOYMENT_ID}"
+
+          STATE=$(firectl-admin -a "${TARGET_ACCOUNT}" deployment get "${DEPLOYMENT_ID}" -o json \
+            | jq -r '.state')
+          echo "deployment_state=${STATE}" >> "$GITHUB_OUTPUT"
+
+          if [ "${STATE}" != "READY" ]; then
+            echo "::warning::Deployment not READY (state: ${STATE})"
+            exit 1
+          fi
+          echo "Deployment is healthy!"
+
+      - name: Summary
+        if: always()
+        run: |
+          DEPLOYMENT_ID="${{ steps.clone.outputs.deployment_id }}"
+          DEPLOYMENT_NAME="${{ steps.clone.outputs.deployment_name }}"
+          DEPLOYMENT_STATE="${{ steps.wait.outputs.deployment_state }}"
+          SOURCE_ACCOUNT="${{ steps.accounts.outputs.source }}"
+          TARGET_ACCOUNT="${{ steps.accounts.outputs.target }}"
+          SOURCE_DEPLOYMENT="${{ inputs.source_deployment }}"
+
+          if [ "${DEPLOYMENT_STATE}" = "READY" ]; then
+            STATUS_EMOJI="white_check_mark"; STATUS_TEXT="Healthy"
+          elif [ "${DEPLOYMENT_STATE}" = "FAILED" ]; then
+            STATUS_EMOJI="x"; STATUS_TEXT="Failed"
+          else
+            STATUS_EMOJI="warning"; STATUS_TEXT="${DEPLOYMENT_STATE:-Unknown}"
+          fi
+
+          {
+            echo "## Deployment Clone Report"
+            echo ""
+            echo "| Field | Value |"
+            echo "|-------|-------|"
+            echo "| **Status** | :${STATUS_EMOJI}: ${STATUS_TEXT} |"
+            echo "| **Source** | \`accounts/${SOURCE_ACCOUNT}/deployments/${SOURCE_DEPLOYMENT}\` |"
+            echo "| **Clone** | \`${DEPLOYMENT_NAME}\` |"
+            echo "| **Clone ID** | \`${DEPLOYMENT_ID}\` |"
+            echo "| **Target Account** | \`${TARGET_ACCOUNT}\` |"
+            echo "| **Final State** | \`${DEPLOYMENT_STATE}\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          EXTRA_ARGS="${{ inputs.extra_args }}"
+          if [ -n "${EXTRA_ARGS}" ]; then
+            {
+              echo ""
+              echo "### Extra Args"
+              echo "\`\`\`"
+              echo "${EXTRA_ARGS}"
+              echo "\`\`\`"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
