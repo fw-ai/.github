@@ -16,11 +16,11 @@ on:
         required: false
         type: string
       deployment_id:
-        description: "ID for the new deployment (auto-generated if empty)"
+        description: "ID for the cloned deployment (auto-generated if empty)"
         required: false
         type: string
-      display_name:
-        description: "Display name for the cloned deployment"
+      description:
+        description: "Description for the cloned deployment"
         required: false
         type: string
       min_replica_count:
@@ -31,16 +31,20 @@ on:
         description: "Maximum replica count override"
         required: false
         type: string
-      accelerator_type:
-        description: "Accelerator type override (e.g. NVIDIA_H100_80GB)"
+      region:
+        description: "Region override (e.g. us-iowa-1, us, global)"
         required: false
         type: string
-      region:
-        description: "Placement region override (e.g. us-iowa-1)"
+      image_tag:
+        description: "Serving image tag override"
+        required: false
+        type: string
+      image_tag_reason:
+        description: "Reason for setting a specific image tag"
         required: false
         type: string
       extra_args:
-        description: "Additional flags passed verbatim to the create/clone command"
+        description: "Additional flags passed verbatim to firectl-admin deployment clone"
         required: false
         type: string
       wait_timeout:
@@ -48,11 +52,6 @@ on:
         required: false
         type: string
         default: "30m"
-      firectl_version:
-        description: "firectl download channel (default: stable)"
-        required: false
-        type: string
-        default: "stable"
 
   workflow_call:
     inputs:
@@ -69,11 +68,11 @@ on:
         required: false
         type: string
       deployment_id:
-        description: "ID for the new deployment (auto-generated if empty)"
+        description: "ID for the cloned deployment (auto-generated if empty)"
         required: false
         type: string
-      display_name:
-        description: "Display name for the cloned deployment"
+      description:
+        description: "Description for the cloned deployment"
         required: false
         type: string
       min_replica_count:
@@ -84,16 +83,20 @@ on:
         description: "Maximum replica count override"
         required: false
         type: string
-      accelerator_type:
-        description: "Accelerator type override (e.g. NVIDIA_H100_80GB)"
+      region:
+        description: "Region override (e.g. us-iowa-1, us, global)"
         required: false
         type: string
-      region:
-        description: "Placement region override (e.g. us-iowa-1)"
+      image_tag:
+        description: "Serving image tag override"
+        required: false
+        type: string
+      image_tag_reason:
+        description: "Reason for setting a specific image tag"
         required: false
         type: string
       extra_args:
-        description: "Additional flags passed verbatim to the create/clone command"
+        description: "Additional flags passed verbatim to firectl-admin deployment clone"
         required: false
         type: string
       wait_timeout:
@@ -101,11 +104,6 @@ on:
         required: false
         type: string
         default: "30m"
-      firectl_version:
-        description: "firectl download channel (default: stable)"
-        required: false
-        type: string
-        default: "stable"
     secrets:
       FIREWORKS_API_KEY:
         description: "Fireworks API key with permissions on source and target accounts"
@@ -130,9 +128,6 @@ jobs:
       deployment_name: ${{ steps.clone.outputs.deployment_name }}
       deployment_state: ${{ steps.wait.outputs.deployment_state }}
 
-    env:
-      FIREWORKS_API_KEY: ${{ secrets.FIREWORKS_API_KEY }}
-
     steps:
       - name: Validate inputs
         run: |
@@ -144,24 +139,24 @@ jobs:
             echo "::error::source_account is required"
             exit 1
           fi
+
+      - name: Install firectl-admin
+        run: |
+          wget -qO firectl-admin.gz \
+            "https://storage.googleapis.com/fireworks-public/firectl-admin/stable/linux-amd64.gz"
+          gunzip firectl-admin.gz
+          sudo install -o root -g root -m 0755 firectl-admin /usr/local/bin/firectl-admin
+          echo "Installed: $(firectl-admin version)"
+
+      - name: Authenticate firectl-admin
+        env:
+          FIREWORKS_API_KEY: ${{ secrets.FIREWORKS_API_KEY }}
+        run: |
           if [ -z "${FIREWORKS_API_KEY}" ]; then
             echo "::error::FIREWORKS_API_KEY secret is not set"
             exit 1
           fi
-
-      - name: Install firectl
-        id: install
-        run: |
-          CHANNEL="${{ inputs.firectl_version || 'stable' }}"
-          URL="https://storage.googleapis.com/fireworks-public/firectl/${CHANNEL}/linux-amd64.gz"
-
-          echo "Downloading firectl from ${URL} ..."
-          wget -qO firectl.gz "${URL}"
-          gunzip firectl.gz
-          sudo install -o root -g root -m 0755 firectl /usr/local/bin/firectl
-          echo "Installed firectl $(firectl version)"
-
-          firectl set-api-key "${FIREWORKS_API_KEY}"
+          firectl-admin set-api-key "${FIREWORKS_API_KEY}"
 
       - name: Resolve accounts
         id: accounts
@@ -176,20 +171,12 @@ jobs:
           echo "Source account: ${SOURCE_ACCOUNT}"
           echo "Target account: ${TARGET_ACCOUNT}"
 
-      - name: Fetch source deployment
-        id: fetch
+      - name: Show source deployment
         run: |
           SOURCE_ACCOUNT="${{ steps.accounts.outputs.source }}"
           SOURCE_DEPLOYMENT="${{ inputs.source_deployment }}"
-
-          echo "Fetching: accounts/${SOURCE_ACCOUNT}/deployments/${SOURCE_DEPLOYMENT}"
-
-          firectl -a "${SOURCE_ACCOUNT}" deployment get "${SOURCE_DEPLOYMENT}" -o json \
-            > /tmp/source_deployment.json
-
-          echo "Source deployment:"
-          jq '{name, state, baseModel, acceleratorType, acceleratorCount, minReplicaCount, maxReplicaCount, precision, placement, deploymentShape}' \
-            /tmp/source_deployment.json
+          echo "Source: accounts/${SOURCE_ACCOUNT}/deployments/${SOURCE_DEPLOYMENT}"
+          firectl-admin -a "${SOURCE_ACCOUNT}" deployment get "${SOURCE_DEPLOYMENT}"
 
       - name: Clone deployment
         id: clone
@@ -197,118 +184,68 @@ jobs:
           SOURCE_ACCOUNT="${{ steps.accounts.outputs.source }}"
           TARGET_ACCOUNT="${{ steps.accounts.outputs.target }}"
           SOURCE_DEPLOYMENT="${{ inputs.source_deployment }}"
-          SOURCE_CONFIG="/tmp/source_deployment.json"
 
-          BASE_MODEL=$(jq -r '.baseModel' "${SOURCE_CONFIG}")
+          # Build the full resource name so clone works across accounts
+          SOURCE_REF="accounts/${SOURCE_ACCOUNT}/deployments/${SOURCE_DEPLOYMENT}"
 
-          # Assemble flags — carry source config, let overrides win
           FLAGS=""
 
-          DEPLOYMENT_ID="${{ inputs.deployment_id }}"
-          if [ -n "${DEPLOYMENT_ID}" ]; then
-            FLAGS="${FLAGS} --deployment-id=${DEPLOYMENT_ID}"
+          if [ -n "${{ inputs.deployment_id }}" ]; then
+            FLAGS="${FLAGS} --deployment-id=${{ inputs.deployment_id }}"
           fi
 
-          DISPLAY_NAME="${{ inputs.display_name }}"
-          if [ -n "${DISPLAY_NAME}" ]; then
-            FLAGS="${FLAGS} --display-name=${DISPLAY_NAME}"
+          if [ -n "${{ inputs.description }}" ]; then
+            FLAGS="${FLAGS} --description=${{ inputs.description }}"
           fi
 
-          # Replica counts
-          MIN_REPLICAS="${{ inputs.min_replica_count }}"
-          if [ -z "${MIN_REPLICAS}" ]; then
-            MIN_REPLICAS=$(jq -r '.minReplicaCount // empty' "${SOURCE_CONFIG}")
-          fi
-          if [ -n "${MIN_REPLICAS}" ]; then
-            FLAGS="${FLAGS} --min-replica-count=${MIN_REPLICAS}"
+          if [ -n "${{ inputs.min_replica_count }}" ]; then
+            FLAGS="${FLAGS} --min-replica-count=${{ inputs.min_replica_count }}"
           fi
 
-          MAX_REPLICAS="${{ inputs.max_replica_count }}"
-          if [ -z "${MAX_REPLICAS}" ]; then
-            MAX_REPLICAS=$(jq -r '.maxReplicaCount // empty' "${SOURCE_CONFIG}")
-          fi
-          if [ -n "${MAX_REPLICAS}" ]; then
-            FLAGS="${FLAGS} --max-replica-count=${MAX_REPLICAS}"
+          if [ -n "${{ inputs.max_replica_count }}" ]; then
+            FLAGS="${FLAGS} --max-replica-count=${{ inputs.max_replica_count }}"
           fi
 
-          # Accelerator
-          ACCEL_TYPE="${{ inputs.accelerator_type }}"
-          if [ -z "${ACCEL_TYPE}" ]; then
-            ACCEL_TYPE=$(jq -r '.acceleratorType // empty' "${SOURCE_CONFIG}")
-          fi
-          if [ -n "${ACCEL_TYPE}" ] && [ "${ACCEL_TYPE}" != "ACCELERATOR_TYPE_UNSPECIFIED" ]; then
-            FLAGS="${FLAGS} --accelerator-type=${ACCEL_TYPE}"
+          if [ -n "${{ inputs.region }}" ]; then
+            FLAGS="${FLAGS} --region=${{ inputs.region }}"
           fi
 
-          ACCEL_COUNT=$(jq -r '.acceleratorCount // empty' "${SOURCE_CONFIG}")
-          if [ -n "${ACCEL_COUNT}" ] && [ "${ACCEL_COUNT}" != "0" ]; then
-            FLAGS="${FLAGS} --accelerator-count=${ACCEL_COUNT}"
+          if [ -n "${{ inputs.image_tag }}" ]; then
+            FLAGS="${FLAGS} --image-tag=${{ inputs.image_tag }}"
           fi
 
-          # Region
-          REGION="${{ inputs.region }}"
-          if [ -n "${REGION}" ]; then
-            FLAGS="${FLAGS} --region=${REGION}"
+          if [ -n "${{ inputs.image_tag_reason }}" ]; then
+            FLAGS="${FLAGS} --image-tag-reason=${{ inputs.image_tag_reason }}"
           fi
 
-          # Precision
-          SRC_PRECISION=$(jq -r '.precision // empty' "${SOURCE_CONFIG}")
-          if [ -n "${SRC_PRECISION}" ] && [ "${SRC_PRECISION}" != "PRECISION_UNSPECIFIED" ]; then
-            FLAGS="${FLAGS} --precision=${SRC_PRECISION}"
-          fi
-
-          # Deployment shape
-          SRC_SHAPE=$(jq -r '.deploymentShape // empty' "${SOURCE_CONFIG}")
-          if [ -n "${SRC_SHAPE}" ]; then
-            FLAGS="${FLAGS} --deployment-shape=${SRC_SHAPE}"
-          fi
-
-          # Context length
-          SRC_CTX=$(jq -r '.maxContextLength // empty' "${SOURCE_CONFIG}")
-          if [ -n "${SRC_CTX}" ] && [ "${SRC_CTX}" != "0" ]; then
-            FLAGS="${FLAGS} --max-context-length=${SRC_CTX}"
-          fi
-
-          # Addons
-          SRC_ADDONS=$(jq -r '.enableAddons // empty' "${SOURCE_CONFIG}")
-          if [ "${SRC_ADDONS}" = "true" ]; then
-            FLAGS="${FLAGS} --enable-addons"
-          fi
-
-          # Wait for the deployment to come up healthy
           FLAGS="${FLAGS} --wait --wait-timeout=${{ inputs.wait_timeout || '30m' }}"
 
-          # Extra flags from the caller
-          EXTRA_ARGS="${{ inputs.extra_args }}"
-          if [ -n "${EXTRA_ARGS}" ]; then
-            FLAGS="${FLAGS} ${EXTRA_ARGS}"
+          if [ -n "${{ inputs.extra_args }}" ]; then
+            FLAGS="${FLAGS} ${{ inputs.extra_args }}"
           fi
 
-          echo "=== Clone summary ==="
-          echo "Source : accounts/${SOURCE_ACCOUNT}/deployments/${SOURCE_DEPLOYMENT}"
-          echo "Target : account=${TARGET_ACCOUNT}"
-          echo "Model  : ${BASE_MODEL}"
-          echo "Flags  : ${FLAGS}"
-          echo "====================="
+          echo "Cloning ${SOURCE_REF} into account ${TARGET_ACCOUNT}"
+          echo "Flags: ${FLAGS}"
 
+          # -a sets the target account; the source ref includes the source account
           # shellcheck disable=SC2086
-          OUTPUT=$(firectl -a "${TARGET_ACCOUNT}" deployment create \
-            "${BASE_MODEL}" \
+          OUTPUT=$(firectl-admin -a "${TARGET_ACCOUNT}" deployment clone \
+            "${SOURCE_REF}" \
             ${FLAGS} 2>&1) || {
-            echo "::error::firectl deployment create failed"
+            echo "::error::firectl-admin deployment clone failed"
             echo "${OUTPUT}"
             exit 1
           }
 
           echo "${OUTPUT}"
 
-          # Extract deployment name from the output (supports both text and json)
-          DEPLOYMENT_NAME=$(echo "${OUTPUT}" | jq -r '.name // empty' 2>/dev/null)
+          # Parse deployment name from text output (e.g. "Name:  accounts/.../deployments/xxx")
+          DEPLOYMENT_NAME=$(echo "${OUTPUT}" | grep -oP '(?<=Name:\s{1,10})accounts/\S+' | head -1 || true)
           if [ -z "${DEPLOYMENT_NAME}" ]; then
-            DEPLOYMENT_NAME=$(echo "${OUTPUT}" | grep -oP '(?<=Name:\s)\S+' || true)
+            DEPLOYMENT_NAME=$(echo "${OUTPUT}" | jq -r '.name // empty' 2>/dev/null || true)
           fi
-          NEW_ID=$(echo "${DEPLOYMENT_NAME}" | awk -F'/' '{print $NF}')
 
+          NEW_ID=$(echo "${DEPLOYMENT_NAME}" | awk -F'/' '{print $NF}')
           if [ -z "${NEW_ID}" ]; then
             echo "::error::Could not extract deployment ID from output"
             exit 1
@@ -316,7 +253,7 @@ jobs:
 
           echo "deployment_id=${NEW_ID}" >> "$GITHUB_OUTPUT"
           echo "deployment_name=${DEPLOYMENT_NAME}" >> "$GITHUB_OUTPUT"
-          echo "Created deployment: ${DEPLOYMENT_NAME}"
+          echo "Cloned deployment: ${DEPLOYMENT_NAME}"
 
       - name: Verify deployment health
         id: wait
@@ -330,17 +267,17 @@ jobs:
             exit 1
           fi
 
-          STATE=$(firectl -a "${TARGET_ACCOUNT}" deployment get "${DEPLOYMENT_ID}" -o json \
-            | jq -r '.state')
+          echo "Verifying deployment ${DEPLOYMENT_ID} in account ${TARGET_ACCOUNT}..."
+          firectl-admin -a "${TARGET_ACCOUNT}" deployment get "${DEPLOYMENT_ID}"
 
+          STATE=$(firectl-admin -a "${TARGET_ACCOUNT}" deployment get "${DEPLOYMENT_ID}" -o json \
+            | jq -r '.state')
           echo "deployment_state=${STATE}" >> "$GITHUB_OUTPUT"
-          echo "Deployment state: ${STATE}"
 
           if [ "${STATE}" != "READY" ]; then
             echo "::warning::Deployment not READY (state: ${STATE})"
             exit 1
           fi
-
           echo "Deployment is healthy!"
 
       - name: Summary
@@ -377,16 +314,16 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
           HAS_OVERRIDES=false
-          for INPUT_NAME in target_account deployment_id display_name min_replica_count max_replica_count accelerator_type region extra_args; do
+          for INPUT_NAME in target_account deployment_id description min_replica_count max_replica_count region image_tag extra_args; do
             VALUE=""
             case "${INPUT_NAME}" in
               target_account) VALUE="${{ inputs.target_account }}" ;;
               deployment_id) VALUE="${{ inputs.deployment_id }}" ;;
-              display_name) VALUE="${{ inputs.display_name }}" ;;
+              description) VALUE="${{ inputs.description }}" ;;
               min_replica_count) VALUE="${{ inputs.min_replica_count }}" ;;
               max_replica_count) VALUE="${{ inputs.max_replica_count }}" ;;
-              accelerator_type) VALUE="${{ inputs.accelerator_type }}" ;;
               region) VALUE="${{ inputs.region }}" ;;
+              image_tag) VALUE="${{ inputs.image_tag }}" ;;
               extra_args) VALUE="${{ inputs.extra_args }}" ;;
             esac
             if [ -n "${VALUE}" ]; then
