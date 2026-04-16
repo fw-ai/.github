@@ -148,7 +148,7 @@ jobs:
           EXTRA_VALUES='${{ steps.placement.outputs.extra_values }}'
           REGION="${{ steps.placement.outputs.region }}"
 
-          FLAGS="--wait --hardware-type=${HARDWARE}"
+          FLAGS="--hardware-type=${HARDWARE}"
 
           if [ -n "${EXTRA_VALUES}" ]; then
             FLAGS="${FLAGS} --extra-values='${EXTRA_VALUES}'"
@@ -173,7 +173,43 @@ jobs:
             ${FLAGS}
 
           echo "deployment_id=${DEPLOYMENT_ID}" >> "$GITHUB_OUTPUT"
-          echo "Target deployment created: ${DEPLOYMENT_ID}"
+
+          POLL_INTERVAL=15
+          MAX_WAIT=900
+          ELAPSED=0
+          while [ "${ELAPSED}" -lt "${MAX_WAIT}" ]; do
+            DEP_JSON=$(firectl-admin -a "${ACCOUNT}" deployment get "${DEPLOYMENT_ID}" -o json 2>&1) || true
+            STATE=$(echo "${DEP_JSON}" | jq -r '.state // empty' 2>/dev/null || true)
+            STATUS_MSG=$(echo "${DEP_JSON}" | jq -r '.status.message // empty' 2>/dev/null || true)
+
+            echo "[${ELAPSED}s] state=${STATE} status=${STATUS_MSG}"
+
+            if [ "${STATE}" = "READY" ]; then
+              echo "Target deployment is READY"
+              exit 0
+            fi
+
+            if [ "${STATE}" = "CREATING" ] && echo "${STATUS_MSG}" | grep -qi "internal"; then
+              echo "::error::Deployment stuck in CREATING with internal error: ${STATUS_MSG}"
+              echo "Deleting failed deployment ${DEPLOYMENT_ID}..."
+              firectl-admin -a "${ACCOUNT}" deployment delete "${DEPLOYMENT_ID}" || true
+              exit 1
+            fi
+
+            if [ "${STATE}" = "FAILED" ]; then
+              echo "::error::Deployment entered FAILED state: ${STATUS_MSG}"
+              echo "Deleting failed deployment ${DEPLOYMENT_ID}..."
+              firectl-admin -a "${ACCOUNT}" deployment delete "${DEPLOYMENT_ID}" || true
+              exit 1
+            fi
+
+            sleep "${POLL_INTERVAL}"
+            ELAPSED=$((ELAPSED + POLL_INTERVAL))
+          done
+
+          echo "::error::Timed out waiting for deployment after ${MAX_WAIT}s (state=${STATE})"
+          firectl-admin -a "${ACCOUNT}" deployment delete "${DEPLOYMENT_ID}" || true
+          exit 1
 
       - name: Create draft model deployment
         id: deploy_draft
@@ -186,7 +222,7 @@ jobs:
           EXTRA_VALUES='${{ steps.placement.outputs.extra_values }}'
           REGION="${{ steps.placement.outputs.region }}"
 
-          FLAGS="--wait --hardware-type=${HARDWARE}"
+          FLAGS="--hardware-type=${HARDWARE}"
 
           if [ -n "${EXTRA_VALUES}" ]; then
             FLAGS="${FLAGS} --extra-values='${EXTRA_VALUES}'"
@@ -211,7 +247,43 @@ jobs:
             ${FLAGS}
 
           echo "deployment_id=${DEPLOYMENT_ID}" >> "$GITHUB_OUTPUT"
-          echo "Draft deployment created: ${DEPLOYMENT_ID}"
+
+          POLL_INTERVAL=15
+          MAX_WAIT=900
+          ELAPSED=0
+          while [ "${ELAPSED}" -lt "${MAX_WAIT}" ]; do
+            DEP_JSON=$(firectl-admin -a "${ACCOUNT}" deployment get "${DEPLOYMENT_ID}" -o json 2>&1) || true
+            STATE=$(echo "${DEP_JSON}" | jq -r '.state // empty' 2>/dev/null || true)
+            STATUS_MSG=$(echo "${DEP_JSON}" | jq -r '.status.message // empty' 2>/dev/null || true)
+
+            echo "[${ELAPSED}s] state=${STATE} status=${STATUS_MSG}"
+
+            if [ "${STATE}" = "READY" ]; then
+              echo "Draft deployment is READY"
+              exit 0
+            fi
+
+            if [ "${STATE}" = "CREATING" ] && echo "${STATUS_MSG}" | grep -qi "internal"; then
+              echo "::error::Deployment stuck in CREATING with internal error: ${STATUS_MSG}"
+              echo "Deleting failed deployment ${DEPLOYMENT_ID}..."
+              firectl-admin -a "${ACCOUNT}" deployment delete "${DEPLOYMENT_ID}" || true
+              exit 1
+            fi
+
+            if [ "${STATE}" = "FAILED" ]; then
+              echo "::error::Deployment entered FAILED state: ${STATUS_MSG}"
+              echo "Deleting failed deployment ${DEPLOYMENT_ID}..."
+              firectl-admin -a "${ACCOUNT}" deployment delete "${DEPLOYMENT_ID}" || true
+              exit 1
+            fi
+
+            sleep "${POLL_INTERVAL}"
+            ELAPSED=$((ELAPSED + POLL_INTERVAL))
+          done
+
+          echo "::error::Timed out waiting for deployment after ${MAX_WAIT}s (state=${STATE})"
+          firectl-admin -a "${ACCOUNT}" deployment delete "${DEPLOYMENT_ID}" || true
+          exit 1
 
       - name: Run hit rate benchmark
         id: benchmark
