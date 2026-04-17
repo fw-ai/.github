@@ -1,0 +1,324 @@
+name: Draft Model Hit Rate Benchmark
+
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: "Target model to benchmark (e.g. accounts/fireworks/models/llama-v3p1-70b-instruct)"
+        required: true
+        type: string
+      draft_model:
+        description: "Draft model for speculative decoding (leave empty for models with built-in MTP)"
+        required: false
+        type: string
+        default: ""
+      hardware_type:
+        description: "Hardware type for deployment"
+        required: true
+        type: choice
+        options:
+          - NVIDIA_B300_288GB
+          - NVIDIA_B200_192GB
+          - NVIDIA_H200_141GB
+      num_speculative_tokens:
+        description: "Number of speculative tokens"
+        required: false
+        type: string
+        default: "5"
+      account_id:
+        description: "Fireworks account ID for the deployment"
+        required: true
+        type: string
+      use_perf_agent:
+        description: "Use perf-agent capacity (NVIDIA_B300_288GB→AP_MALAYSIA_1, NVIDIA_B200_192GB→US_GEORGIA_2, NVIDIA_H200_141GB→US_GEORGIA_3)"
+        required: false
+        type: boolean
+        default: false
+      dataset:
+        description: "Benchmark dataset or prompt file to use"
+        required: false
+        type: string
+        default: ""
+      max_tokens:
+        description: "Max tokens to generate per request"
+        required: false
+        type: string
+        default: "256"
+      num_requests:
+        description: "Number of benchmark requests"
+        required: false
+        type: string
+        default: "100"
+      extra_args:
+        description: "Extra flags for deployment creation (e.g. --min-replica-count=1)"
+        required: false
+        type: string
+
+jobs:
+  benchmark:
+    name: Hit Rate Benchmark
+    runs-on: ubuntu-latest
+    env:
+      PERF_AGENT_REGIONS: |
+        NVIDIA_B300_288GB → AP_MALAYSIA_1
+        NVIDIA_B200_192GB → US_GEORGIA_2
+        NVIDIA_H200_141GB → US_GEORGIA_3
+    steps:
+      - name: Display configuration
+        run: |
+          echo "## Benchmark Configuration" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Parameter | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|-----------|-------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Model** | \`${{ inputs.model }}\` |" >> "$GITHUB_STEP_SUMMARY"
+
+          if [ -n "${{ inputs.draft_model }}" ]; then
+            echo "| **Draft Model** | \`${{ inputs.draft_model }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "| **Draft Model** | _(none – using built-in MTP)_ |" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          echo "| **Hardware** | \`${{ inputs.hardware_type }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Speculative Tokens** | \`${{ inputs.num_speculative_tokens }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| **Use Perf-Agent** | \`${{ inputs.use_perf_agent }}\` |" >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "${{ inputs.use_perf_agent }}" = "true" ]; then
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "### Perf-Agent Region Mapping" >> "$GITHUB_STEP_SUMMARY"
+            echo "\`\`\`" >> "$GITHUB_STEP_SUMMARY"
+            echo "$PERF_AGENT_REGIONS" >> "$GITHUB_STEP_SUMMARY"
+            echo "\`\`\`" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Install firectl-admin
+        run: |
+          wget -qO firectl-admin.gz \
+            "https://storage.googleapis.com/fireworks-public/firectl-admin/stable/linux-amd64.gz"
+          gunzip firectl-admin.gz
+          sudo install -o root -g root -m 0755 firectl-admin /usr/local/bin/firectl-admin
+          echo "Installed: $(firectl-admin version)"
+
+      - name: Authenticate firectl-admin
+        env:
+          FIREWORKS_API_KEY: ${{ secrets.FIREWORKS_API_KEY }}
+        run: |
+          if [ -z "${FIREWORKS_API_KEY}" ]; then
+            echo "::error::FIREWORKS_API_KEY secret is not set"
+            exit 1
+          fi
+          firectl-admin set-api-key "${FIREWORKS_API_KEY}"
+
+      - name: Resolve perf-agent placement
+        id: placement
+        run: |
+          HARDWARE="${{ inputs.hardware_type }}"
+          USE_PERF_AGENT="${{ inputs.use_perf_agent }}"
+
+          EXTRA_VALUES=""
+          REGION=""
+
+          if [ "${USE_PERF_AGENT}" = "true" ]; then
+            EXTRA_VALUES='{"toleration_key": "fireworks.ai/perf-agent"}'
+
+            case "${HARDWARE}" in
+              NVIDIA_B300_288GB) REGION="AP_MALAYSIA_1" ;;
+              NVIDIA_B200_192GB) REGION="US_GEORGIA_2" ;;
+              NVIDIA_H200_141GB) REGION="US_GEORGIA_3" ;;
+              *)
+                echo "::error::No perf-agent region for hardware type: ${HARDWARE}"
+                exit 1
+                ;;
+            esac
+
+            echo "Using perf-agent capacity in region ${REGION}"
+          fi
+
+          echo "extra_values=${EXTRA_VALUES}" >> "$GITHUB_OUTPUT"
+          echo "region=${REGION}" >> "$GITHUB_OUTPUT"
+          echo "Extra values: ${EXTRA_VALUES}"
+          echo "Region: ${REGION}"
+
+      - name: Create target model deployment
+        id: deploy_model
+        run: |
+          ACCOUNT="${{ inputs.account_id }}"
+          MODEL="${{ inputs.model }}"
+          HARDWARE="${{ inputs.hardware_type }}"
+          DEPLOYMENT_ID="hitrate-bench-$(date +%s)-target"
+          EXTRA_VALUES='${{ steps.placement.outputs.extra_values }}'
+          REGION="${{ steps.placement.outputs.region }}"
+
+          FLAGS="--wait --hardware-type=${HARDWARE}"
+
+          if [ -n "${EXTRA_VALUES}" ]; then
+            FLAGS="${FLAGS} --extra-values='${EXTRA_VALUES}'"
+          fi
+
+          if [ -n "${REGION}" ]; then
+            FLAGS="${FLAGS} --region=${REGION}"
+          fi
+
+          if [ -n "${{ inputs.extra_args }}" ]; then
+            FLAGS="${FLAGS} ${{ inputs.extra_args }}"
+          fi
+
+          echo "Creating target deployment: ${DEPLOYMENT_ID}"
+          echo "Model: ${MODEL}"
+          echo "Flags: ${FLAGS}"
+
+          # shellcheck disable=SC2086
+          firectl-admin -a "${ACCOUNT}" deployment create \
+            "${MODEL}" \
+            --deployment-id="${DEPLOYMENT_ID}" \
+            ${FLAGS}
+
+          echo "deployment_id=${DEPLOYMENT_ID}" >> "$GITHUB_OUTPUT"
+          echo "Target deployment created: ${DEPLOYMENT_ID}"
+
+      - name: Create draft model deployment
+        id: deploy_draft
+        if: inputs.draft_model != ''
+        run: |
+          ACCOUNT="${{ inputs.account_id }}"
+          DRAFT_MODEL="${{ inputs.draft_model }}"
+          HARDWARE="${{ inputs.hardware_type }}"
+          DEPLOYMENT_ID="hitrate-bench-$(date +%s)-draft"
+          EXTRA_VALUES='${{ steps.placement.outputs.extra_values }}'
+          REGION="${{ steps.placement.outputs.region }}"
+
+          FLAGS="--wait --hardware-type=${HARDWARE}"
+
+          if [ -n "${EXTRA_VALUES}" ]; then
+            FLAGS="${FLAGS} --extra-values='${EXTRA_VALUES}'"
+          fi
+
+          if [ -n "${REGION}" ]; then
+            FLAGS="${FLAGS} --region=${REGION}"
+          fi
+
+          if [ -n "${{ inputs.extra_args }}" ]; then
+            FLAGS="${FLAGS} ${{ inputs.extra_args }}"
+          fi
+
+          echo "Creating draft deployment: ${DEPLOYMENT_ID}"
+          echo "Draft model: ${DRAFT_MODEL}"
+          echo "Flags: ${FLAGS}"
+
+          # shellcheck disable=SC2086
+          firectl-admin -a "${ACCOUNT}" deployment create \
+            "${DRAFT_MODEL}" \
+            --deployment-id="${DEPLOYMENT_ID}" \
+            ${FLAGS}
+
+          echo "deployment_id=${DEPLOYMENT_ID}" >> "$GITHUB_OUTPUT"
+          echo "Draft deployment created: ${DEPLOYMENT_ID}"
+
+      - name: Run hit rate benchmark
+        id: benchmark
+        env:
+          FIREWORKS_API_KEY: ${{ secrets.FIREWORKS_API_KEY }}
+        run: |
+          ACCOUNT="${{ inputs.account_id }}"
+          TARGET_DEPLOYMENT="${{ steps.deploy_model.outputs.deployment_id }}"
+          DRAFT_DEPLOYMENT="${{ steps.deploy_draft.outputs.deployment_id }}"
+          NUM_SPEC_TOKENS="${{ inputs.num_speculative_tokens }}"
+          MAX_TOKENS="${{ inputs.max_tokens }}"
+          NUM_REQUESTS="${{ inputs.num_requests }}"
+
+          BENCH_FLAGS="--account=${ACCOUNT}"
+          BENCH_FLAGS="${BENCH_FLAGS} --target-deployment=${TARGET_DEPLOYMENT}"
+          BENCH_FLAGS="${BENCH_FLAGS} --num-speculative-tokens=${NUM_SPEC_TOKENS}"
+          BENCH_FLAGS="${BENCH_FLAGS} --max-tokens=${MAX_TOKENS}"
+          BENCH_FLAGS="${BENCH_FLAGS} --num-requests=${NUM_REQUESTS}"
+
+          if [ -n "${DRAFT_DEPLOYMENT}" ]; then
+            BENCH_FLAGS="${BENCH_FLAGS} --draft-deployment=${DRAFT_DEPLOYMENT}"
+            echo "Running benchmark with external draft model"
+          else
+            echo "Running benchmark with built-in MTP (no external draft model)"
+          fi
+
+          if [ -n "${{ inputs.dataset }}" ]; then
+            BENCH_FLAGS="${BENCH_FLAGS} --dataset=${{ inputs.dataset }}"
+          fi
+
+          echo "Benchmark flags: ${BENCH_FLAGS}"
+
+          # shellcheck disable=SC2086
+          firectl-admin -a "${ACCOUNT}" benchmark hit-rate \
+            ${BENCH_FLAGS} 2>&1 | tee benchmark_output.txt
+
+          if [ -f benchmark_output.txt ]; then
+            echo "benchmark_output<<EOF" >> "$GITHUB_OUTPUT"
+            cat benchmark_output.txt >> "$GITHUB_OUTPUT"
+            echo "EOF" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Cleanup target deployment
+        if: always()
+        continue-on-error: true
+        run: |
+          ACCOUNT="${{ inputs.account_id }}"
+          DEPLOYMENT_ID="${{ steps.deploy_model.outputs.deployment_id }}"
+          if [ -n "${DEPLOYMENT_ID}" ]; then
+            echo "Deleting target deployment: ${DEPLOYMENT_ID}"
+            firectl-admin -a "${ACCOUNT}" deployment delete "${DEPLOYMENT_ID}" || true
+          fi
+
+      - name: Cleanup draft deployment
+        if: always() && inputs.draft_model != ''
+        continue-on-error: true
+        run: |
+          ACCOUNT="${{ inputs.account_id }}"
+          DEPLOYMENT_ID="${{ steps.deploy_draft.outputs.deployment_id }}"
+          if [ -n "${DEPLOYMENT_ID}" ]; then
+            echo "Deleting draft deployment: ${DEPLOYMENT_ID}"
+            firectl-admin -a "${ACCOUNT}" deployment delete "${DEPLOYMENT_ID}" || true
+          fi
+
+      - name: Summary
+        if: always()
+        run: |
+          TARGET_DEPLOYMENT="${{ steps.deploy_model.outputs.deployment_id }}"
+          DRAFT_DEPLOYMENT="${{ steps.deploy_draft.outputs.deployment_id }}"
+          HARDWARE="${{ inputs.hardware_type }}"
+          USE_PERF_AGENT="${{ inputs.use_perf_agent }}"
+          REGION="${{ steps.placement.outputs.region }}"
+
+          {
+            echo ""
+            echo "## Benchmark Results"
+            echo ""
+            echo "| Field | Value |"
+            echo "|-------|-------|"
+            echo "| **Model** | \`${{ inputs.model }}\` |"
+
+            if [ -n "${{ inputs.draft_model }}" ]; then
+              echo "| **Draft Model** | \`${{ inputs.draft_model }}\` |"
+            else
+              echo "| **Draft Model** | _(built-in MTP)_ |"
+            fi
+
+            echo "| **Hardware** | \`${HARDWARE}\` |"
+            echo "| **Speculative Tokens** | \`${{ inputs.num_speculative_tokens }}\` |"
+            echo "| **Target Deployment** | \`${TARGET_DEPLOYMENT}\` |"
+
+            if [ -n "${DRAFT_DEPLOYMENT}" ]; then
+              echo "| **Draft Deployment** | \`${DRAFT_DEPLOYMENT}\` |"
+            fi
+
+            if [ "${USE_PERF_AGENT}" = "true" ]; then
+              echo "| **Perf-Agent** | :white_check_mark: Enabled |"
+              echo "| **Region** | \`${REGION}\` |"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ -f benchmark_output.txt ]; then
+            {
+              echo ""
+              echo "### Output"
+              echo "\`\`\`"
+              cat benchmark_output.txt
+              echo "\`\`\`"
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
