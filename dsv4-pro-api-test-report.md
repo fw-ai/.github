@@ -133,7 +133,7 @@ Nvidia's API exhibited severe issues:
 
 ---
 
-## Summary Table
+## Summary Table (Run 1 — Sequential)
 
 | Metric | Together AI | Nvidia NIM |
 |--------|------------|------------|
@@ -143,3 +143,71 @@ Nvidia's API exhibited severe issues:
 | Reliability | ✅ 6/6 requests succeeded | ❌ 3/6 requests timed out |
 | Avg Latency (success) | ~20s | ~85s |
 | Truncation Risk | ⚠️ 2 responses truncated at 500 tokens | ❌ N/A (higher completion before limit) |
+
+---
+
+## Run 2 — Parallel Agent Tests
+
+All 12 tests (6 per provider) were launched simultaneously via parallel agents.
+
+### Together AI Results (Run 2)
+
+| # | Prompt | Correct | Reasoning | Gibberish in Reasoning | Latency |
+|---|--------|---------|-----------|----------------------|---------|
+| 1 | Sheep riddle | ✅ Yes (6) | ✅ Yes | ❌ None | ~1.7s |
+| 2 | Widget riddle | ✅ Yes (5 min) | ✅ Yes | ❌ None | ~3.3s |
+| 3 | Prime sum | ✅ Yes (77) | ✅ Yes | ⚠️ **Yes** — `"So771 the"`, `"the716716 answer"` | ~6.5s |
+| 4 | Palindrome | ✅ Yes (truncated at length) | ✅ Yes | ⚠️ **Severe** — `"we32 account"`, `"specify;16"`, `"to26 treat"`, `"as42-is"`, `"if7 we"`, `"But12"`, `"prompt24"`, `"context,16"`, `"here13"`, `"But14"`, `"Didži use"`, `"conciseness,08"` | ~10.9s |
+| 5 | Multiplication | ✅ Yes (5461) | ✅ Yes | ❌ None | ~3.4s |
+| 6 | Stack vs Queue | ⚠️ Truncated at length | ✅ Yes | ⚠️ **Yes (leaked into content too)** — Content: `"to400: different"`. Reasoning: `"key19275:"`, `"can16:"`, `"But71:"`, `"be557:"`, `"That's05:"`, `"557:06:"`, `"it790: as a971:"` | ~8.7s |
+
+**Together Run 2 Summary:**
+- **6/6 requests succeeded** (100% reliability)
+- **All answers correct** (2 truncated due to 500 token limit)
+- **3/6 responses had gibberish in reasoning** (Tests 3, 4, 6)
+- **1 response had gibberish leak into the `content` field** (Test 6: `"to400: different"`)
+- Average latency: **~5.8s**
+
+### Nvidia NIM Results (Run 2)
+
+| # | Prompt | Correct | Reasoning | Gibberish in Reasoning | Latency |
+|---|--------|---------|-----------|----------------------|---------|
+| 1 | Cow riddle | ❌ **Timed out** (200s) | N/A | N/A | Timeout |
+| 2 | Widget riddle | ✅ Yes (5 min) | ✅ Yes | ⚠️ **Yes** — Special token leak: `"Alternatively,<｜end▁of▁repo▁name｜>"` | ~85.6s |
+| 3 | Prime sum | ❌ **Timed out** (200s) | N/A | N/A | Timeout |
+| 4 | Palindrome | ❌ **Timed out** (200s) | N/A | N/A | Timeout |
+| 5 | Multiplication | ❌ **Timed out** (200s) | N/A | N/A | Timeout |
+| 6 | Stack vs Queue | ❌ **Timed out** (200s) | N/A | N/A | Timeout |
+
+**Nvidia Run 2 Summary:**
+- **Only 1/6 requests succeeded** (17% reliability, down from 50% in Run 1)
+- **The 1 successful answer was correct** (5 minutes)
+- **Special token leak** found in the one successful response: `<｜end▁of▁repo▁name｜>` — a model-internal special token with fullwidth vertical bars and Unicode block characters
+- Average latency (success): **~85.6s**. All failures: **200s timeout with 0 bytes received**
+
+---
+
+## Combined Summary (Both Runs)
+
+| Metric | Together AI | Nvidia NIM |
+|--------|------------|------------|
+| Total Requests | 12 | 12 |
+| Successful | 12/12 (100%) | 4/12 (33%) |
+| Correct Answers | ✅ 12/12 | ✅ 4/4 (when responding) |
+| Reasoning Present | ✅ 12/12 | ✅ 4/4 |
+| Gibberish in Reasoning | ⚠️ 7/12 (58%) | ⚠️ 4/4 (100% of successful) |
+| Gibberish Leaked to Content | ⚠️ 1/12 (Test 6, Run 2) | ❌ None observed |
+| Truncated (token limit) | ⚠️ 4/12 | 0/4 |
+| Avg Latency (success) | ~13s | ~80s |
+| Timeouts | 0 | 8/12 (67%) |
+
+### Gibberish Artifact Types Observed
+
+| Type | Examples | Provider |
+|------|----------|----------|
+| Random numbers mid-word | `"So771"`, `"the716716"`, `"we32"`, `"as42-is"`, `"But13;"` | Both |
+| Colon-number patterns | `"key19275:"`, `"can16:"`, `"But71:"`, `"it790:"`, `"a971:"` | Together |
+| Repeated number padding | `"06"` / `"07"` appearing 30-40 times in single response | Together |
+| Date-like fragments | `"01-11-2024?"`, `"06:16"`, `"05:36"` | Both |
+| Foreign words | `"böjnings"`, `"dátummal"`, `"Didži"` | Together |
+| Special token leaks | `"<｜end▁of▁repo▁name｜>"` | Nvidia |
