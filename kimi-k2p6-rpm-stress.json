@@ -1,0 +1,270 @@
+{
+  "elapsed_s": 3.13,
+  "rpm_equivalent": 3839.8,
+  "status_counts": {
+    "200": 188,
+    "429": 12
+  },
+  "first_429": {
+    "i": 18,
+    "status": 429,
+    "lat": 0.233,
+    "err": {
+      "object": "error",
+      "type": "invalid_request_error",
+      "code": "invalid_request_error",
+      "message": "rate limit exceeded, please try again later"
+    },
+    "h": {
+      "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+      "x-ratelimit-limit-tokens-generated": "36000",
+      "x-ratelimit-limit-tokens-prompt": "11250000",
+      "x-ratelimit-over-limit": "no",
+      "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5398911",
+      "x-ratelimit-remaining-tokens-generated": "0",
+      "x-ratelimit-remaining-tokens-prompt": "11247531"
+    }
+  },
+  "sample_errors": [
+    {
+      "i": 18,
+      "status": 429,
+      "lat": 0.233,
+      "err": {
+        "object": "error",
+        "type": "invalid_request_error",
+        "code": "invalid_request_error",
+        "message": "rate limit exceeded, please try again later"
+      },
+      "h": {
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "36000",
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-over-limit": "no",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5398911",
+        "x-ratelimit-remaining-tokens-generated": "0",
+        "x-ratelimit-remaining-tokens-prompt": "11247531"
+      }
+    },
+    {
+      "i": 53,
+      "status": 429,
+      "lat": 0.225,
+      "err": {
+        "object": "error",
+        "type": "invalid_request_error",
+        "code": "invalid_request_error",
+        "message": "rate limit exceeded, please try again later"
+      },
+      "h": {
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "36000",
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-over-limit": "no",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5398911",
+        "x-ratelimit-remaining-tokens-generated": "0",
+        "x-ratelimit-remaining-tokens-prompt": "11247531"
+      }
+    },
+    {
+      "i": 90,
+      "status": 429,
+      "lat": 0.218,
+      "err": {
+        "object": "error",
+        "type": "invalid_request_error",
+        "code": "invalid_request_error",
+        "message": "rate limit exceeded, please try again later"
+      },
+      "h": {
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "36000",
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-over-limit": "no",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5398911",
+        "x-ratelimit-remaining-tokens-generated": "0",
+        "x-ratelimit-remaining-tokens-prompt": "11247531"
+      }
+    },
+    {
+      "i": 103,
+      "status": 429,
+      "lat": 0.15,
+      "err": {
+        "object": "error",
+        "type": "invalid_request_error",
+        "code": "invalid_request_error",
+        "message": "rate limit exceeded, please try again later"
+      },
+      "h": {
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "36000",
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-over-limit": "no",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5398911",
+        "x-ratelimit-remaining-tokens-generated": "0",
+        "x-ratelimit-remaining-tokens-prompt": "11250000"
+      }
+    },
+    {
+      "i": 104,
+      "status": 429,
+      "lat": 0.101,
+      "err": {
+        "object": "error",
+        "type": "invalid_request_error",
+        "code": "invalid_request_error",
+        "message": "rate limit exceeded, please try again later"
+      },
+      "h": {
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "36000",
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-over-limit": "no",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5398911",
+        "x-ratelimit-remaining-tokens-generated": "0",
+        "x-ratelimit-remaining-tokens-prompt": "11247531"
+      }
+    },
+    {
+      "i": 110,
+      "status": 429,
+      "lat": 0.15,
+      "err": {
+        "object": "error",
+        "type": "invalid_request_error",
+        "code": "invalid_request_error",
+        "message": "rate limit exceeded, please try again later"
+      },
+      "h": {
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "36000",
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-over-limit": "no",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5398911",
+        "x-ratelimit-remaining-tokens-generated": "0",
+        "x-ratelimit-remaining-tokens-prompt": "11250000"
+      }
+    },
+    {
+      "i": 111,
+      "status": 429,
+      "lat": 0.149,
+      "err": {
+        "object": "error",
+        "type": "invalid_request_error",
+        "code": "invalid_request_error",
+        "message": "rate limit exceeded, please try again later"
+      },
+      "h": {
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "36000",
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-over-limit": "no",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5398911",
+        "x-ratelimit-remaining-tokens-generated": "0",
+        "x-ratelimit-remaining-tokens-prompt": "11250000"
+      }
+    },
+    {
+      "i": 112,
+      "status": 429,
+      "lat": 0.149,
+      "err": {
+        "object": "error",
+        "type": "invalid_request_error",
+        "code": "invalid_request_error",
+        "message": "rate limit exceeded, please try again later"
+      },
+      "h": {
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "36000",
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-over-limit": "no",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5398911",
+        "x-ratelimit-remaining-tokens-generated": "0",
+        "x-ratelimit-remaining-tokens-prompt": "11250000"
+      }
+    },
+    {
+      "i": 134,
+      "status": 429,
+      "lat": 0.144,
+      "err": {
+        "object": "error",
+        "type": "invalid_request_error",
+        "code": "invalid_request_error",
+        "message": "rate limit exceeded, please try again later"
+      },
+      "h": {
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "36000",
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-over-limit": "no",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5398911",
+        "x-ratelimit-remaining-tokens-generated": "0",
+        "x-ratelimit-remaining-tokens-prompt": "11250000"
+      }
+    },
+    {
+      "i": 144,
+      "status": 429,
+      "lat": 0.255,
+      "err": {
+        "object": "error",
+        "type": "invalid_request_error",
+        "code": "invalid_request_error",
+        "message": "rate limit exceeded, please try again later"
+      },
+      "h": {
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "36000",
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-over-limit": "no",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5398911",
+        "x-ratelimit-remaining-tokens-generated": "0",
+        "x-ratelimit-remaining-tokens-prompt": "11250000"
+      }
+    },
+    {
+      "i": 153,
+      "status": 429,
+      "lat": 0.152,
+      "err": {
+        "object": "error",
+        "type": "invalid_request_error",
+        "code": "invalid_request_error",
+        "message": "rate limit exceeded, please try again later"
+      },
+      "h": {
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "36000",
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-over-limit": "no",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5398911",
+        "x-ratelimit-remaining-tokens-generated": "0",
+        "x-ratelimit-remaining-tokens-prompt": "11250000"
+      }
+    },
+    {
+      "i": 178,
+      "status": 429,
+      "lat": 0.104,
+      "err": {
+        "object": "error",
+        "type": "invalid_request_error",
+        "code": "invalid_request_error",
+        "message": "rate limit exceeded, please try again later"
+      },
+      "h": {
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "36000",
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-over-limit": "no",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5398911",
+        "x-ratelimit-remaining-tokens-generated": "0",
+        "x-ratelimit-remaining-tokens-prompt": "11250000"
+      }
+    }
+  ]
+}

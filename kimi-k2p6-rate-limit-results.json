@@ -1,0 +1,1344 @@
+{
+  "model": "accounts/fireworks/models/kimi-k2p6",
+  "timestamp_utc": "2026-08-05T17:26:41Z",
+  "phases": {
+    "baseline_single": {
+      "total": 1,
+      "status_counts": {
+        "200": 1
+      },
+      "success_rate": 1.0,
+      "latency_s": {
+        "min": 0.4495302739999829,
+        "max": 0.4495302739999829,
+        "mean": 0.4495302739999829,
+        "p50": 0.4495302739999829
+      },
+      "latest_rate_limit_headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-remaining-tokens-prompt": "11249984",
+        "x-ratelimit-over-limit": "no"
+      },
+      "first_429_index": null,
+      "first_503_index": null,
+      "sample_errors": []
+    },
+    "steady_low_parallel": {
+      "total": 10,
+      "status_counts": {
+        "200": 10
+      },
+      "success_rate": 1.0,
+      "latency_s": {
+        "min": 0.8768106880000062,
+        "max": 1.7742476210000007,
+        "mean": 1.246523089100006,
+        "p50": 1.2186630235000138
+      },
+      "latest_rate_limit_headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-remaining-tokens-prompt": "11249981",
+        "x-ratelimit-over-limit": "no"
+      },
+      "first_429_index": null,
+      "first_503_index": null,
+      "sample_errors": []
+    },
+    "moderate_parallel": {
+      "total": 20,
+      "status_counts": {
+        "200": 20
+      },
+      "success_rate": 1.0,
+      "latency_s": {
+        "min": 1.969659390000004,
+        "max": 13.489280185000013,
+        "mean": 4.133620091849998,
+        "p50": 2.4672788430000026
+      },
+      "latest_rate_limit_headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11246712",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5397325",
+        "x-ratelimit-remaining-tokens-generated": "213145",
+        "x-ratelimit-over-limit": "no"
+      },
+      "first_429_index": null,
+      "first_503_index": null,
+      "sample_errors": []
+    },
+    "burst_parallel": {
+      "total": 30,
+      "status_counts": {
+        "200": 30
+      },
+      "success_rate": 1.0,
+      "latency_s": {
+        "min": 0.9237531930000102,
+        "max": 5.309711937000003,
+        "mean": 1.7330934568333343,
+        "p50": 1.2951424485000018
+      },
+      "latest_rate_limit_headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-remaining-tokens-prompt": "11246421",
+        "x-ratelimit-over-limit": "no"
+      },
+      "first_429_index": null,
+      "first_503_index": null,
+      "sample_errors": []
+    },
+    "heavy_output": {
+      "total": 8,
+      "status_counts": {
+        "200": 8
+      },
+      "success_rate": 1.0,
+      "latency_s": {
+        "min": 3.6082314209999993,
+        "max": 8.83252007499999,
+        "mean": 5.444448210249995,
+        "p50": 4.831071655499997
+      },
+      "latest_rate_limit_headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11246402",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5397037",
+        "x-ratelimit-remaining-tokens-generated": "208898",
+        "x-ratelimit-over-limit": "no"
+      },
+      "first_429_index": null,
+      "first_503_index": null,
+      "sample_errors": []
+    },
+    "recovery_wait": {
+      "total": 5,
+      "status_counts": {
+        "200": 5
+      },
+      "success_rate": 1.0,
+      "latency_s": {
+        "min": 0.7583341669999868,
+        "max": 6.704704643000014,
+        "mean": 4.639633552999999,
+        "p50": 4.8563677970000185
+      },
+      "latest_rate_limit_headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11245059",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5396694",
+        "x-ratelimit-remaining-tokens-generated": "209111",
+        "x-ratelimit-over-limit": "no"
+      },
+      "first_429_index": null,
+      "first_503_index": null,
+      "sample_errors": []
+    }
+  },
+  "raw_results": [
+    {
+      "phase": "baseline_single",
+      "index": 0,
+      "status_code": 200,
+      "latency_s": 0.4495302739999829,
+      "prompt_tokens": 16,
+      "completion_tokens": 16,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-remaining-tokens-prompt": "11249984",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "steady_low_parallel",
+      "index": 0,
+      "status_code": 200,
+      "latency_s": 1.7430589570000166,
+      "prompt_tokens": 19,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-remaining-tokens-prompt": "11249981",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "steady_low_parallel",
+      "index": 1,
+      "status_code": 200,
+      "latency_s": 1.7742476210000007,
+      "prompt_tokens": 19,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-remaining-tokens-prompt": "11249962",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "steady_low_parallel",
+      "index": 2,
+      "status_code": 200,
+      "latency_s": 0.9262403500000005,
+      "prompt_tokens": 19,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-remaining-tokens-prompt": "11249891",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5399910",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "steady_low_parallel",
+      "index": 3,
+      "status_code": 200,
+      "latency_s": 0.8847273050000126,
+      "prompt_tokens": 19,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-remaining-tokens-prompt": "11249981",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "steady_low_parallel",
+      "index": 4,
+      "status_code": 200,
+      "latency_s": 0.8768106880000062,
+      "prompt_tokens": 19,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-remaining-tokens-prompt": "11249872",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5399891",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "steady_low_parallel",
+      "index": 5,
+      "status_code": 200,
+      "latency_s": 0.9169327669999916,
+      "prompt_tokens": 19,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-remaining-tokens-prompt": "11249853",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5399891",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "steady_low_parallel",
+      "index": 6,
+      "status_code": 200,
+      "latency_s": 1.2291536480000218,
+      "prompt_tokens": 19,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11249929",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5399948",
+        "x-ratelimit-remaining-tokens-generated": "215706",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "steady_low_parallel",
+      "index": 7,
+      "status_code": 200,
+      "latency_s": 1.2081723990000057,
+      "prompt_tokens": 19,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11249796",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5399948",
+        "x-ratelimit-remaining-tokens-generated": "215706",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "steady_low_parallel",
+      "index": 8,
+      "status_code": 200,
+      "latency_s": 1.3116970739999942,
+      "prompt_tokens": 19,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11249777",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5399869",
+        "x-ratelimit-remaining-tokens-generated": "215706",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "steady_low_parallel",
+      "index": 9,
+      "status_code": 200,
+      "latency_s": 1.5941900820000114,
+      "prompt_tokens": 19,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-remaining-tokens-prompt": "11249981",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "moderate_parallel",
+      "index": 0,
+      "status_code": 200,
+      "latency_s": 2.112493157999978,
+      "prompt_tokens": 21,
+      "completion_tokens": 128,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11249756",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5399860",
+        "x-ratelimit-remaining-tokens-generated": "215130",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "moderate_parallel",
+      "index": 1,
+      "status_code": 200,
+      "latency_s": 2.0788152279999963,
+      "prompt_tokens": 21,
+      "completion_tokens": 128,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11249735",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5399860",
+        "x-ratelimit-remaining-tokens-generated": "215130",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "moderate_parallel",
+      "index": 2,
+      "status_code": 200,
+      "latency_s": 13.457547730999977,
+      "prompt_tokens": 21,
+      "completion_tokens": 128,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-remaining-tokens-prompt": "11249958",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "moderate_parallel",
+      "index": 3,
+      "status_code": 200,
+      "latency_s": 13.489280185000013,
+      "prompt_tokens": 21,
+      "completion_tokens": 128,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-remaining-tokens-prompt": "11249979",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "moderate_parallel",
+      "index": 4,
+      "status_code": 200,
+      "latency_s": 1.969659390000004,
+      "prompt_tokens": 21,
+      "completion_tokens": 128,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11249714",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5399860",
+        "x-ratelimit-remaining-tokens-generated": "215130",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "moderate_parallel",
+      "index": 5,
+      "status_code": 200,
+      "latency_s": 11.484700843000013,
+      "prompt_tokens": 21,
+      "completion_tokens": 128,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-remaining-tokens-prompt": "11249632",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "moderate_parallel",
+      "index": 6,
+      "status_code": 200,
+      "latency_s": 2.724387605000004,
+      "prompt_tokens": 21,
+      "completion_tokens": 128,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-remaining-tokens-prompt": "11249958",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "moderate_parallel",
+      "index": 7,
+      "status_code": 200,
+      "latency_s": 2.5724797000000024,
+      "prompt_tokens": 21,
+      "completion_tokens": 128,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-remaining-tokens-prompt": "11249979",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "moderate_parallel",
+      "index": 8,
+      "status_code": 200,
+      "latency_s": 7.027807866999979,
+      "prompt_tokens": 21,
+      "completion_tokens": 128,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11249569",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5399745",
+        "x-ratelimit-remaining-tokens-generated": "214482",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "moderate_parallel",
+      "index": 9,
+      "status_code": 200,
+      "latency_s": 2.3967286900000033,
+      "prompt_tokens": 21,
+      "completion_tokens": 128,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-remaining-tokens-prompt": "11249979",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "moderate_parallel",
+      "index": 10,
+      "status_code": 200,
+      "latency_s": 2.073006573999976,
+      "prompt_tokens": 21,
+      "completion_tokens": 128,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11249653",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5399787",
+        "x-ratelimit-remaining-tokens-generated": "214682",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "moderate_parallel",
+      "index": 11,
+      "status_code": 200,
+      "latency_s": 2.157902584999988,
+      "prompt_tokens": 21,
+      "completion_tokens": 128,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11249156",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5399370",
+        "x-ratelimit-remaining-tokens-generated": "214194",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "moderate_parallel",
+      "index": 12,
+      "status_code": 200,
+      "latency_s": 2.537828996000002,
+      "prompt_tokens": 21,
+      "completion_tokens": 128,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11249166",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5399387",
+        "x-ratelimit-remaining-tokens-generated": "214281",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "moderate_parallel",
+      "index": 13,
+      "status_code": 200,
+      "latency_s": 2.110844061999984,
+      "prompt_tokens": 21,
+      "completion_tokens": 128,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11249171",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5399387",
+        "x-ratelimit-remaining-tokens-generated": "214006",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "moderate_parallel",
+      "index": 14,
+      "status_code": 200,
+      "latency_s": 2.8061243049999973,
+      "prompt_tokens": 21,
+      "completion_tokens": 128,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11249154",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5399410",
+        "x-ratelimit-remaining-tokens-generated": "214006",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "moderate_parallel",
+      "index": 15,
+      "status_code": 200,
+      "latency_s": 2.8343422460000056,
+      "prompt_tokens": 21,
+      "completion_tokens": 128,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11249173",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5399382",
+        "x-ratelimit-remaining-tokens-generated": "214114",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "moderate_parallel",
+      "index": 16,
+      "status_code": 200,
+      "latency_s": 2.540057544000007,
+      "prompt_tokens": 21,
+      "completion_tokens": 128,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11249152",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5399382",
+        "x-ratelimit-remaining-tokens-generated": "214114",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "moderate_parallel",
+      "index": 17,
+      "status_code": 200,
+      "latency_s": 2.0378839930000083,
+      "prompt_tokens": 21,
+      "completion_tokens": 128,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11249593",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5399357",
+        "x-ratelimit-remaining-tokens-generated": "214251",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "moderate_parallel",
+      "index": 18,
+      "status_code": 200,
+      "latency_s": 2.1159235450000153,
+      "prompt_tokens": 21,
+      "completion_tokens": 128,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11246730",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5399357",
+        "x-ratelimit-remaining-tokens-generated": "214251",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "moderate_parallel",
+      "index": 19,
+      "status_code": 200,
+      "latency_s": 2.1445875900000146,
+      "prompt_tokens": 21,
+      "completion_tokens": 128,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11246712",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5397325",
+        "x-ratelimit-remaining-tokens-generated": "213145",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "burst_parallel",
+      "index": 0,
+      "status_code": 200,
+      "latency_s": 0.9237531930000102,
+      "prompt_tokens": 15,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-remaining-tokens-prompt": "11249970",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "burst_parallel",
+      "index": 1,
+      "status_code": 200,
+      "latency_s": 1.3765895720000003,
+      "prompt_tokens": 15,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11246784",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5397349",
+        "x-ratelimit-remaining-tokens-generated": "212498",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "burst_parallel",
+      "index": 2,
+      "status_code": 200,
+      "latency_s": 1.5193182350000143,
+      "prompt_tokens": 15,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11249163",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5399360",
+        "x-ratelimit-remaining-tokens-generated": "212907",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "burst_parallel",
+      "index": 3,
+      "status_code": 200,
+      "latency_s": 0.9528534089999994,
+      "prompt_tokens": 15,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-remaining-tokens-prompt": "11249955",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "burst_parallel",
+      "index": 4,
+      "status_code": 200,
+      "latency_s": 0.9517804159999912,
+      "prompt_tokens": 15,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-remaining-tokens-prompt": "11249985",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "burst_parallel",
+      "index": 5,
+      "status_code": 200,
+      "latency_s": 1.4148320680000097,
+      "prompt_tokens": 15,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11246754",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5397349",
+        "x-ratelimit-remaining-tokens-generated": "212498",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "burst_parallel",
+      "index": 6,
+      "status_code": 200,
+      "latency_s": 1.1147605699999872,
+      "prompt_tokens": 15,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11246785",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5397326",
+        "x-ratelimit-remaining-tokens-generated": "212341",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "burst_parallel",
+      "index": 7,
+      "status_code": 200,
+      "latency_s": 1.4158787460000042,
+      "prompt_tokens": 15,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11246769",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5397349",
+        "x-ratelimit-remaining-tokens-generated": "212498",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "burst_parallel",
+      "index": 8,
+      "status_code": 200,
+      "latency_s": 1.1494519590000039,
+      "prompt_tokens": 15,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11246770",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5397326",
+        "x-ratelimit-remaining-tokens-generated": "212341",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "burst_parallel",
+      "index": 9,
+      "status_code": 200,
+      "latency_s": 1.2462186180000003,
+      "prompt_tokens": 15,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11246800",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5397326",
+        "x-ratelimit-remaining-tokens-generated": "212341",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "burst_parallel",
+      "index": 10,
+      "status_code": 200,
+      "latency_s": 1.1293881349999992,
+      "prompt_tokens": 15,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-remaining-tokens-prompt": "11249970",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "burst_parallel",
+      "index": 11,
+      "status_code": 200,
+      "latency_s": 1.6545148459999837,
+      "prompt_tokens": 15,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11249148",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5399360",
+        "x-ratelimit-remaining-tokens-generated": "212907",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "burst_parallel",
+      "index": 12,
+      "status_code": 200,
+      "latency_s": 1.0952261200000066,
+      "prompt_tokens": 15,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-remaining-tokens-prompt": "11249955",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "burst_parallel",
+      "index": 13,
+      "status_code": 200,
+      "latency_s": 1.0968196240000054,
+      "prompt_tokens": 15,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-remaining-tokens-prompt": "11249985",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "burst_parallel",
+      "index": 14,
+      "status_code": 200,
+      "latency_s": 1.6555409970000028,
+      "prompt_tokens": 15,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11249133",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5399360",
+        "x-ratelimit-remaining-tokens-generated": "212907",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "burst_parallel",
+      "index": 15,
+      "status_code": 200,
+      "latency_s": 2.139889748999991,
+      "prompt_tokens": 15,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-remaining-tokens-prompt": "11249985",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "burst_parallel",
+      "index": 16,
+      "status_code": 200,
+      "latency_s": 2.092999118999984,
+      "prompt_tokens": 15,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-remaining-tokens-prompt": "11249955",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "burst_parallel",
+      "index": 17,
+      "status_code": 200,
+      "latency_s": 2.086777927000014,
+      "prompt_tokens": 15,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-remaining-tokens-prompt": "11249970",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "burst_parallel",
+      "index": 18,
+      "status_code": 200,
+      "latency_s": 1.144329980000009,
+      "prompt_tokens": 15,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-remaining-tokens-prompt": "11249970",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "burst_parallel",
+      "index": 19,
+      "status_code": 200,
+      "latency_s": 1.0560014700000124,
+      "prompt_tokens": 15,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-remaining-tokens-prompt": "11249985",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "burst_parallel",
+      "index": 20,
+      "status_code": 200,
+      "latency_s": 1.2520901720000097,
+      "prompt_tokens": 15,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-remaining-tokens-prompt": "11249955",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "burst_parallel",
+      "index": 21,
+      "status_code": 200,
+      "latency_s": 1.525174015999994,
+      "prompt_tokens": 15,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-remaining-tokens-prompt": "11246656",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "burst_parallel",
+      "index": 22,
+      "status_code": 200,
+      "latency_s": 1.6753569660000096,
+      "prompt_tokens": 15,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-remaining-tokens-prompt": "11249985",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "burst_parallel",
+      "index": 23,
+      "status_code": 200,
+      "latency_s": 1.338194724999994,
+      "prompt_tokens": 15,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-remaining-tokens-prompt": "11246641",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "burst_parallel",
+      "index": 24,
+      "status_code": 200,
+      "latency_s": 5.309711937000003,
+      "prompt_tokens": 15,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11249205",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5397319",
+        "x-ratelimit-remaining-tokens-generated": "212828",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "burst_parallel",
+      "index": 25,
+      "status_code": 200,
+      "latency_s": 5.130342642999977,
+      "prompt_tokens": 15,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11246465",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5397319",
+        "x-ratelimit-remaining-tokens-generated": "212828",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "burst_parallel",
+      "index": 26,
+      "status_code": 200,
+      "latency_s": 5.186301154000006,
+      "prompt_tokens": 15,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11249190",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5397319",
+        "x-ratelimit-remaining-tokens-generated": "212828",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "burst_parallel",
+      "index": 27,
+      "status_code": 200,
+      "latency_s": 1.235240860999994,
+      "prompt_tokens": 15,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-remaining-tokens-prompt": "11249985",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "burst_parallel",
+      "index": 28,
+      "status_code": 200,
+      "latency_s": 1.0229154160000178,
+      "prompt_tokens": 15,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-remaining-tokens-prompt": "11246436",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "burst_parallel",
+      "index": 29,
+      "status_code": 200,
+      "latency_s": 1.1005510619999939,
+      "prompt_tokens": 15,
+      "completion_tokens": 64,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-remaining-tokens-prompt": "11246421",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "heavy_output",
+      "index": 0,
+      "status_code": 200,
+      "latency_s": 5.2359516649999875,
+      "prompt_tokens": 21,
+      "completion_tokens": 256,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-remaining-tokens-prompt": "11249937",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "heavy_output",
+      "index": 1,
+      "status_code": 200,
+      "latency_s": 5.66713300699999,
+      "prompt_tokens": 21,
+      "completion_tokens": 256,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-remaining-tokens-prompt": "11249958",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "heavy_output",
+      "index": 2,
+      "status_code": 200,
+      "latency_s": 7.799037986999991,
+      "prompt_tokens": 21,
+      "completion_tokens": 256,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11246505",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5397059",
+        "x-ratelimit-remaining-tokens-generated": "209741",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "heavy_output",
+      "index": 3,
+      "status_code": 200,
+      "latency_s": 4.426191646000007,
+      "prompt_tokens": 21,
+      "completion_tokens": 256,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-remaining-tokens-prompt": "11249979",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "heavy_output",
+      "index": 4,
+      "status_code": 200,
+      "latency_s": 4.187831545999984,
+      "prompt_tokens": 21,
+      "completion_tokens": 256,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11246382",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5397013",
+        "x-ratelimit-remaining-tokens-generated": "209741",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "heavy_output",
+      "index": 5,
+      "status_code": 200,
+      "latency_s": 3.6082314209999993,
+      "prompt_tokens": 21,
+      "completion_tokens": 256,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11246419",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5397013",
+        "x-ratelimit-remaining-tokens-generated": "209741",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "heavy_output",
+      "index": 6,
+      "status_code": 200,
+      "latency_s": 8.83252007499999,
+      "prompt_tokens": 21,
+      "completion_tokens": 256,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11249979",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5399335",
+        "x-ratelimit-remaining-tokens-generated": "213747",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "heavy_output",
+      "index": 7,
+      "status_code": 200,
+      "latency_s": 3.7986883350000085,
+      "prompt_tokens": 21,
+      "completion_tokens": 256,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11246402",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5397037",
+        "x-ratelimit-remaining-tokens-generated": "208898",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "recovery_wait",
+      "index": 0,
+      "status_code": 200,
+      "latency_s": 4.8563677970000185,
+      "prompt_tokens": 11,
+      "completion_tokens": 8,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11246029",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5397041",
+        "x-ratelimit-remaining-tokens-generated": "207563",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "recovery_wait",
+      "index": 1,
+      "status_code": 200,
+      "latency_s": 4.493718208999979,
+      "prompt_tokens": 11,
+      "completion_tokens": 8,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11243768",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5395120",
+        "x-ratelimit-remaining-tokens-generated": "206663",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "recovery_wait",
+      "index": 2,
+      "status_code": 200,
+      "latency_s": 6.704704643000014,
+      "prompt_tokens": 11,
+      "completion_tokens": 8,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11243851",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5395186",
+        "x-ratelimit-remaining-tokens-generated": "206226",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "recovery_wait",
+      "index": 3,
+      "status_code": 200,
+      "latency_s": 6.385042948999995,
+      "prompt_tokens": 11,
+      "completion_tokens": 8,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11243952",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5395642",
+        "x-ratelimit-remaining-tokens-generated": "206921",
+        "x-ratelimit-over-limit": "no"
+      }
+    },
+    {
+      "phase": "recovery_wait",
+      "index": 4,
+      "status_code": 200,
+      "latency_s": 0.7583341669999868,
+      "prompt_tokens": 11,
+      "completion_tokens": 8,
+      "error": null,
+      "headers": {
+        "x-ratelimit-limit-tokens-prompt": "11250000",
+        "x-ratelimit-limit-tokens-cache-adjusted-prompt": "5400000",
+        "x-ratelimit-limit-tokens-generated": "216000",
+        "x-ratelimit-remaining-tokens-prompt": "11245059",
+        "x-ratelimit-remaining-tokens-cache-adjusted-prompt": "5396694",
+        "x-ratelimit-remaining-tokens-generated": "209111",
+        "x-ratelimit-over-limit": "no"
+      }
+    }
+  ]
+}
