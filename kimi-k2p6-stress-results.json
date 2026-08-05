@@ -1,0 +1,20 @@
+{
+  "scenarios": {
+    "stress_50x20": {
+      "status_counts": {
+        "200": 50
+      },
+      "first_429": null,
+      "sample_429s": [],
+      "sample_503s": []
+    },
+    "stress_100x50": {
+      "status_counts": {
+        "200": 100
+      },
+      "first_429": null,
+      "sample_429s": [],
+      "sample_503s": []
+    }
+  }
+}
